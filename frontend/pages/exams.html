@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Examinations — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">Examinations</div><div class="breadcrumb">Academic · Exam Management</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>Examination Management</h1><p>Schedule exams, enter marks and publish results</p></div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="openAddExamModal()">+ Schedule Exam</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--border-subtle)">
+      <button class="tab-btn active" id="tab_exams" onclick="switchTab('exams')">Exams</button>
+      <button class="tab-btn" id="tab_results" onclick="switchTab('results')">Results</button>
+    </div>
+
+    <!-- Exams Panel -->
+    <div id="examsPanel">
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <select class="form-select" id="semFilter" style="width:160px" onchange="loadExams()">
+          <option value="">All Semesters</option>
+          <option value="Fall">Fall</option>
+          <option value="Spring">Spring</option>
+          <option value="Summer">Summer</option>
+        </select>
+        <select class="form-select" id="typeFilter" style="width:160px" onchange="loadExams()">
+          <option value="">All Types</option>
+          <option value="midterm">Midterm</option>
+          <option value="final">Final</option>
+          <option value="quiz">Quiz</option>
+          <option value="assignment">Assignment</option>
+        </select>
+      </div>
+      <div class="table-wrapper">
+        <div class="table-toolbar"><span class="table-title" id="examCount">Exams</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Exam Name</th><th>Subject</th><th>Type</th><th>Date</th><th>Time</th><th>Room</th><th>Total Marks</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="examsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div id="resultsPanel" style="display:none">
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <select class="form-select" id="examSelect" style="width:250px" onchange="loadResults()">
+          <option value="">Select Exam</option>
+        </select>
+      </div>
+      <div class="table-wrapper">
+        <div class="table-toolbar"><span class="table-title">Results</span>
+          <button class="btn btn-primary btn-sm" onclick="openEnterMarksModal()">Enter Marks</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Student</th><th>Roll No</th><th>Marks</th><th>Total</th><th>Percentage</th><th>Grade</th><th>Grade Points</th></tr></thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- Add Exam Modal -->
+<div id="addExamModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span class="modal-title">Schedule New Exam</span><button class="modal-close" onclick="document.getElementById('addExamModal').style.display='none'">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field form-full"><label class="form-label">Exam Name *</label><input class="form-input" id="e_name" placeholder="DSA Midterm Exam"/></div>
+        <div class="form-field"><label class="form-label">Subject *</label>
+          <select class="form-select" id="e_subject"><option value="">Select Subject</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Exam Type *</label>
+          <select class="form-select" id="e_type">
+            <option value="midterm">Midterm</option><option value="final">Final</option>
+            <option value="quiz">Quiz</option><option value="assignment">Assignment</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Academic Year</label><input class="form-input" id="e_year" value="2024-25"/></div>
+        <div class="form-field"><label class="form-label">Semester</label>
+          <select class="form-select" id="e_semester"><option value="Fall">Fall</option><option value="Spring">Spring</option><option value="Summer">Summer</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Exam Date *</label><input class="form-input" type="date" id="e_date"/></div>
+        <div class="form-field"><label class="form-label">Start Time</label><input class="form-input" type="time" id="e_start" value="10:00"/></div>
+        <div class="form-field"><label class="form-label">End Time</label><input class="form-input" type="time" id="e_end" value="13:00"/></div>
+        <div class="form-field"><label class="form-label">Room</label><input class="form-input" id="e_room" placeholder="R101"/></div>
+        <div class="form-field"><label class="form-label">Total Marks</label><input class="form-input" type="number" id="e_marks" value="100"/></div>
+        <div class="form-field"><label class="form-label">Passing Marks</label><input class="form-input" type="number" id="e_pass" value="40"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('addExamModal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary" onclick="saveExam()">Schedule Exam</button>
+    </div>
+  </div>
+</div>
+
+<!-- Enter Marks Modal -->
+<div id="marksModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span class="modal-title">Enter Marks</span><button class="modal-close" onclick="document.getElementById('marksModal').style.display='none'">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="form-label">Student *</label>
+          <select class="form-select" id="m_student"><option value="">Select Student</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Marks Obtained</label><input class="form-input" type="number" id="m_marks" placeholder="85"/></div>
+        <div class="form-field form-full"><label class="form-label">Remarks</label><input class="form-input" id="m_remarks" placeholder="Good performance"/></div>
+        <div class="form-field form-full">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="m_absent"/> <span class="form-label" style="margin:0">Mark as Absent</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('marksModal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMarks()">Save Marks</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.tab-btn{padding:10px 20px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-secondary);cursor:pointer;font-family:var(--font-body);font-size:0.87rem;font-weight:500;transition:all 0.2s ease;margin-bottom:-1px;}
+.tab-btn.active,.tab-btn:hover{color:var(--brand-primary);border-bottom-color:var(--brand-primary);}
+</style>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="admin-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item" href="students.html"><span class="nav-icon">🎓</span><span class="nav-label">Students</span></a>
+<a class="nav-item" href="teachers.html"><span class="nav-icon">👩‍🏫</span><span class="nav-label">Teachers</span></a>
+<a class="nav-item" href="attendance.html"><span class="nav-icon">📅</span><span class="nav-label">Attendance</span></a>
+<a class="nav-item active" href="exams.html"><span class="nav-icon">📝</span><span class="nav-label">Examinations</span></a>
+<a class="nav-item" href="fees.html"><span class="nav-icon">💳</span><span class="nav-label">Fee Management</span></a>
+<a class="nav-item" href="library.html"><span class="nav-icon">📚</span><span class="nav-label">Library</span></a>
+<a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">A</div><div class="user-info"><div class="user-name" id="userNameSidebar">Admin</div><div class="user-role" id="userRoleSidebar">admin</div></div></div></div>`;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const subRes = await SubjectsAPI.list();
+  if (subRes?.ok) {
+    (subRes.data?.data || []).forEach(s => {
+      document.getElementById('e_subject').innerHTML += `<option value="${s.id}">${s.name}</option>`;
+    });
+  }
+  const studRes = await StudentsAPI.list({ limit: 100 });
+  if (studRes?.ok) {
+    (studRes.data?.data || []).forEach(s => {
+      document.getElementById('m_student').innerHTML += `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`;
+    });
+  }
+  loadExams();
+});
+
+async function loadExams() {
+  const tbody = document.getElementById('examsBody');
+  tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-tertiary)">Loading...</td></tr>`;
+  const semester = document.getElementById('semFilter').value;
+  const res = await ExamsAPI.list({ semester });
+  if (!res?.ok) { tbody.innerHTML = renderEmptyRow(9, 'Failed to load exams'); return; }
+  const exams = res.data?.data || [];
+  document.getElementById('examCount').textContent = `Exams (${exams.length})`;
+
+  // Populate exam select for results
+  const sel = document.getElementById('examSelect');
+  sel.innerHTML = '<option value="">Select Exam</option>';
+  exams.forEach(e => sel.innerHTML += `<option value="${e.id}">${e.name}</option>`);
+
+  if (!exams.length) { tbody.innerHTML = renderEmptyRow(9); return; }
+  tbody.innerHTML = exams.map(e => `
+    <tr>
+      <td style="font-weight:500">${e.name}</td>
+      <td>${e.subject_name || e.subjectName}</td>
+      <td><span class="badge badge-info">${e.exam_type || e.examType}</span></td>
+      <td>${formatDate(e.exam_date || e.examDate)}</td>
+      <td style="font-size:0.82rem">${e.start_time || e.startTime} - ${e.end_time || e.endTime}</td>
+      <td>${e.room || '—'}</td>
+      <td style="font-weight:600">${e.total_marks || e.totalMarks}</td>
+      <td>${createStatusBadge(e.is_published || e.isPublished ? 'published' : 'draft')}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-secondary btn-sm" onclick="publishExam(${e.id})">Publish</button>
+          <button class="btn btn-primary btn-sm" onclick="viewResults(${e.id})">Results</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function loadResults() {
+  const examId = document.getElementById('examSelect').value;
+  if (!examId) return;
+  const tbody = document.getElementById('resultsBody');
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-tertiary)">Loading...</td></tr>`;
+  const res = await ExamsAPI.getResults({ examId });
+  if (!res?.ok) { tbody.innerHTML = renderEmptyRow(7); return; }
+  const results = res.data?.data || [];
+  if (!results.length) { tbody.innerHTML = renderEmptyRow(7, 'No results entered yet'); return; }
+  tbody.innerHTML = results.map(r => {
+    const pct = r.total_marks ? Math.round((r.marks_obtained / r.total_marks) * 100) : 0;
+    return `<tr>
+      <td style="font-weight:500">${r.student_name}</td>
+      <td><span style="font-family:monospace;font-size:0.82rem">${r.roll_no}</span></td>
+      <td>${r.is_absent ? '<span style="color:var(--brand-danger)">Absent</span>' : r.marks_obtained}</td>
+      <td>${r.total_marks}</td>
+      <td>${r.is_absent ? '—' : pct + '%'}</td>
+      <td><span style="font-weight:700;color:var(--brand-primary)">${r.grade || '—'}</span></td>
+      <td>${r.grade_points || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function switchTab(tab) {
+  ['exams','results'].forEach(t => {
+    document.getElementById(`tab_${t}`).classList.toggle('active', t === tab);
+    document.getElementById(`${t}Panel`).style.display = t === tab ? 'block' : 'none';
+  });
+}
+
+function openAddExamModal() { document.getElementById('addExamModal').style.display = 'flex'; }
+function openEnterMarksModal() { document.getElementById('marksModal').style.display = 'flex'; }
+function viewResults(id) {
+  document.getElementById('examSelect').value = id;
+  switchTab('results');
+  loadResults();
+}
+
+async function publishExam(id) {
+  const res = await ExamsAPI.update(id, { isPublished: true });
+  if (res?.ok) { Toast.success('Exam published!'); loadExams(); }
+  else Toast.error('Failed to publish');
+}
+
+async function saveExam() {
+  const data = {
+    name: document.getElementById('e_name').value,
+    subjectId: document.getElementById('e_subject').value,
+    examType: document.getElementById('e_type').value,
+    academicYear: document.getElementById('e_year').value,
+    semester: document.getElementById('e_semester').value,
+    examDate: document.getElementById('e_date').value,
+    startTime: document.getElementById('e_start').value,
+    endTime: document.getElementById('e_end').value,
+    room: document.getElementById('e_room').value,
+    totalMarks: document.getElementById('e_marks').value,
+    passingMarks: document.getElementById('e_pass').value,
+  };
+  if (!data.name || !data.subjectId || !data.examDate) { Toast.error('Please fill required fields'); return; }
+  const res = await ExamsAPI.create(data);
+  if (!res?.ok) { Toast.error('Failed to schedule exam'); return; }
+  Toast.success('Exam scheduled!');
+  document.getElementById('addExamModal').style.display = 'none';
+  loadExams();
+}
+
+async function saveMarks() {
+  const examId = document.getElementById('examSelect').value;
+  if (!examId) { Toast.error('Please select an exam first'); return; }
+  const data = {
+    examId,
+    studentId: document.getElementById('m_student').value,
+    marksObtained: document.getElementById('m_marks').value,
+    isAbsent: document.getElementById('m_absent').checked,
+    remarks: document.getElementById('m_remarks').value,
+  };
+  if (!data.studentId) { Toast.error('Please select a student'); return; }
+  const res = await ExamsAPI.saveResult(data);
+  if (!res?.ok) { Toast.error('Failed to save marks'); return; }
+  Toast.success('Marks saved! Grade auto-calculated.');
+  document.getElementById('marksModal').style.display = 'none';
+  loadResults();
+}
+</script>
+</body>
+</html>

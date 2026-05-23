@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Teachers — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">Teachers</div><div class="breadcrumb">Academic · Teacher Management</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>Teacher Management</h1><p>Manage all teachers, subjects and schedules</p></div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="openAddTeacherModal()">+ Add Teacher</button>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <input type="text" class="form-input" placeholder="🔍 Search teachers..." id="searchInput" style="flex:1" oninput="loadTeachers()"/>
+      <select class="form-select" id="deptFilter" onchange="loadTeachers()" style="width:200px">
+        <option value="">All Departments</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+      <div class="table-toolbar"><span class="table-title" id="tableCount">Teachers</span></div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr>
+            <th>Teacher</th><th>Employee ID</th><th>Department</th>
+            <th>Designation</th><th>Qualification</th><th>Joining Date</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="teachersBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- Add Teacher Modal -->
+<div id="addModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span class="modal-title">Add New Teacher</span><button class="modal-close" onclick="document.getElementById('addModal').style.display='none'">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="form-label">First Name *</label><input class="form-input" id="f_firstName" placeholder="Priya"/></div>
+        <div class="form-field"><label class="form-label">Last Name *</label><input class="form-input" id="f_lastName" placeholder="Mehta"/></div>
+        <div class="form-field form-full"><label class="form-label">Email *</label><input class="form-input" id="f_email" type="email" placeholder="teacher@erp.edu"/></div>
+        <div class="form-field"><label class="form-label">Phone</label><input class="form-input" id="f_phone" placeholder="9800000000"/></div>
+        <div class="form-field"><label class="form-label">Department</label>
+          <select class="form-select" id="f_dept"><option value="">Select</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Designation</label><input class="form-input" id="f_designation" placeholder="Assistant Professor"/></div>
+        <div class="form-field form-full"><label class="form-label">Qualification</label><input class="form-input" id="f_qualification" placeholder="M.Tech Computer Science"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTeacher()">Save Teacher</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+// Sidebar
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="admin-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item" href="students.html"><span class="nav-icon">🎓</span><span class="nav-label">Students</span></a>
+<a class="nav-item active" href="teachers.html"><span class="nav-icon">👩‍🏫</span><span class="nav-label">Teachers</span></a>
+<a class="nav-item" href="attendance.html"><span class="nav-icon">📅</span><span class="nav-label">Attendance</span></a>
+<a class="nav-item" href="exams.html"><span class="nav-icon">📝</span><span class="nav-label">Examinations</span></a>
+<a class="nav-item" href="fees.html"><span class="nav-icon">💳</span><span class="nav-label">Fee Management</span></a>
+<a class="nav-item" href="library.html"><span class="nav-icon">📚</span><span class="nav-label">Library</span></a>
+<a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">A</div><div class="user-info"><div class="user-name" id="userNameSidebar">Admin</div><div class="user-role" id="userRoleSidebar">admin</div></div></div></div>`;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const depts = await DepartmentsAPI.list();
+  if (depts?.ok) {
+    const sel = document.getElementById('deptFilter');
+    const f_dept = document.getElementById('f_dept');
+    (depts.data?.data || []).forEach(d => {
+      sel.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+      f_dept.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+    });
+  }
+  loadTeachers();
+});
+
+async function loadTeachers() {
+  const tbody = document.getElementById('teachersBody');
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-tertiary)">Loading...</td></tr>`;
+  const search = document.getElementById('searchInput').value;
+  const deptId = document.getElementById('deptFilter').value;
+  const res = await TeachersAPI.list({ search, departmentId: deptId });
+  if (!res?.ok) { tbody.innerHTML = renderEmptyRow(8, 'Failed to load teachers'); return; }
+  const teachers = res.data?.data || [];
+  document.getElementById('tableCount').textContent = `Teachers (${teachers.length})`;
+  if (!teachers.length) { tbody.innerHTML = renderEmptyRow(8); return; }
+  tbody.innerHTML = teachers.map(t => `
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        ${createAvatar(`${t.first_name} ${t.last_name}`)}
+        <div><div style="font-weight:500">${t.first_name} ${t.last_name}</div><div style="font-size:0.72rem;color:var(--text-tertiary)">${t.email}</div></div>
+      </div></td>
+      <td><span style="font-family:monospace;font-size:0.82rem">${t.employee_id}</span></td>
+      <td>${t.department_name || '—'}</td>
+      <td>${t.designation || '—'}</td>
+      <td>${t.qualification || '—'}</td>
+      <td>${formatDate(t.joining_date)}</td>
+      <td>${createStatusBadge(t.is_active ? 'active' : 'inactive')}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="viewTeacher(${t.id})">View</button></td>
+    </tr>
+  `).join('');
+}
+
+function openAddTeacherModal() { document.getElementById('addModal').style.display = 'flex'; }
+
+async function saveTeacher() {
+  const data = {
+    firstName:   document.getElementById('f_firstName').value.trim(),
+    lastName:    document.getElementById('f_lastName').value.trim(),
+    email:       document.getElementById('f_email').value.trim(),
+    phone:       document.getElementById('f_phone').value.trim(),
+    departmentId:document.getElementById('f_dept').value,
+    designation: document.getElementById('f_designation').value.trim(),
+    qualification:document.getElementById('f_qualification').value.trim(),
+  };
+  if (!data.firstName || !data.email) { Toast.error('Name and email required'); return; }
+  const res = await TeachersAPI.create(data);
+  if (!res?.ok) { Toast.error(res?.data?.error || 'Failed to save'); return; }
+  Toast.success('Teacher added! Default password: Password@123');
+  document.getElementById('addModal').style.display = 'none';
+  loadTeachers();
+}
+
+function viewTeacher(id) { Toast.info('Teacher profile view coming soon!'); }
+</script>
+</body>
+</html>

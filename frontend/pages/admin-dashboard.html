@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Dashboard — Smart ERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="app-shell" id="appShell">
+
+  <!-- ═══════════ SIDEBAR ═══════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="48" height="48" rx="14" fill="url(#sbgrad)"/>
+          <path d="M24 10L38 17V25C38 33 31 39.5 24 42C17 39.5 10 33 10 25V17L24 10Z" fill="white" fill-opacity="0.9"/>
+          <path d="M18 24h12M24 18v12" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+          <defs><linearGradient id="sbgrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+        </svg>
+      </div>
+      <span class="brand-name">Smart ERP</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="nav-section-title">Main</span>
+      <a class="nav-item active" href="admin-dashboard.html">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <span class="nav-section-title">Academic</span>
+      <a class="nav-item" href="students.html">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/></svg>
+        <span class="nav-label">Students</span>
+      </a>
+      <a class="nav-item" href="teachers.html">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+        <span class="nav-label">Teachers</span>
+      </a>
+      <a class="nav-item" href="courses.html">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>
+        <span class="nav-label">Courses</span>
+      </a>
+      <a class="nav-item" href="attendance.html">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+        <span class="nav-label">Attendance</span>
+      </a>
+      <a class="nav-item" href="exams.html">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
+        <span class="nav-label">Examinations</span>
+      </a>
+      <a class="nav-item" href="timetable.html">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/></svg>
+        <span class="nav-label">Timetable</span>
+      </a>
+
+      <span class="nav-section-title">Finance</span>
+      <a class="nav-item" href="fees.html">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>
+        <span class="nav-label">Fee Management</span>
+      </a>
+
+      <span class="nav-section-title">Resources</span>
+      <a class="nav-item" href="library.html">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>
+        <span class="nav-label">Library</span>
+      </a>
+      <a class="nav-item" href="notifications.html">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+        <span class="nav-label">Notifications</span>
+        <span class="nav-badge" id="notifBadge">0</span>
+      </a>
+
+      <span class="nav-section-title">System</span>
+      <a class="nav-item" href="analytics.html">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+        <span class="nav-label">Analytics</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card" onclick="toggleUserMenu()">
+        <div class="user-avatar" id="userAvatarSidebar">A</div>
+        <div class="user-info">
+          <div class="user-name" id="userNameSidebar">Loading...</div>
+          <div class="user-role" id="userRoleSidebar">admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════ HEADER ═══════════ -->
+  <header class="top-header">
+    <div class="header-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
+      </button>
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="breadcrumb">Overview · Academic 2024-25</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="search-box">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+        <input type="text" placeholder="Search students, teachers..." id="globalSearch"/>
+      </div>
+      <button class="icon-btn" onclick="window.location.href='notifications.html'" title="Notifications">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+        <span class="dot" id="notifDot" style="display:none"></span>
+      </button>
+      <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <!-- ═══════════ MAIN CONTENT ═══════════ -->
+  <main class="main-content">
+    <div class="content-inner">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1>Welcome back, <span id="adminName">Admin</span> 👋</h1>
+          <p id="currentDate"></p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" onclick="exportReport()">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            Export Report
+          </button>
+          <button class="btn btn-primary" onclick="window.location.href='students.html'">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+            Add Student
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid" id="statsGrid">
+        <!-- Loaded by JS -->
+        <div class="stat-card skeleton" style="height:130px"></div>
+        <div class="stat-card skeleton" style="height:130px"></div>
+        <div class="stat-card skeleton" style="height:130px"></div>
+        <div class="stat-card skeleton" style="height:130px"></div>
+        <div class="stat-card skeleton" style="height:130px"></div>
+        <div class="stat-card skeleton" style="height:130px"></div>
+      </div>
+
+      <!-- Charts -->
+      <div class="chart-grid">
+        <div class="card">
+          <div class="card-header-row">
+            <div>
+              <div class="card-title">Enrollment Trend</div>
+              <div class="card-subtitle">Student registrations over the last 12 months</div>
+            </div>
+            <select class="form-select" style="width:auto;font-size:0.78rem;padding:6px 10px" id="trendPeriod" onchange="refreshCharts()">
+              <option value="12">Last 12 months</option>
+              <option value="6">Last 6 months</option>
+            </select>
+          </div>
+          <canvas id="enrollmentChart" height="90"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-header-row">
+            <div>
+              <div class="card-title">Department Distribution</div>
+              <div class="card-subtitle">Students per department</div>
+            </div>
+          </div>
+          <canvas id="deptChart" height="180"></canvas>
+        </div>
+      </div>
+
+      <!-- Second chart row -->
+      <div class="chart-grid" style="margin-bottom:28px">
+        <div class="card">
+          <div class="card-header-row">
+            <div>
+              <div class="card-title">Fee Collection</div>
+              <div class="card-subtitle">Monthly payment tracking</div>
+            </div>
+          </div>
+          <canvas id="feeChart" height="90"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-header-row">
+            <div>
+              <div class="card-title">Payment Status</div>
+              <div class="card-subtitle">Fee distribution by status</div>
+            </div>
+          </div>
+          <canvas id="paymentStatusChart" height="180"></canvas>
+        </div>
+      </div>
+
+      <!-- At-risk students & Recent activity -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px">
+        <div class="card" style="animation-delay:0.4s">
+          <div class="card-header-row">
+            <div>
+              <div class="card-title" style="color:var(--brand-danger)">⚠ At-Risk Students</div>
+              <div class="card-subtitle">Students with high risk scores</div>
+            </div>
+            <a href="students.html" class="btn btn-secondary btn-sm">View All</a>
+          </div>
+          <div id="atRiskList"><div class="skeleton" style="height:40px;margin-bottom:8px;border-radius:8px"></div><div class="skeleton" style="height:40px;border-radius:8px"></div></div>
+        </div>
+        <div class="card" style="animation-delay:0.45s">
+          <div class="card-header-row">
+            <div>
+              <div class="card-title">📅 Upcoming Exams</div>
+              <div class="card-subtitle">Scheduled this week</div>
+            </div>
+            <a href="exams.html" class="btn btn-secondary btn-sm">Manage</a>
+          </div>
+          <div id="upcomingExamsList"></div>
+        </div>
+      </div>
+
+      <!-- Recent Students Table -->
+      <div class="table-wrapper">
+        <div class="table-toolbar">
+          <span class="table-title">Recent Students</span>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="form-input" placeholder="Search..." id="studentSearch" style="width:200px;padding:7px 12px;font-size:0.82rem" oninput="searchStudents(this.value)"/>
+            <a href="students.html" class="btn btn-primary btn-sm">View All</a>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="studentsTable">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>ID</th>
+                <th>Course</th>
+                <th>Semester</th>
+                <th>Admission Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentsTableBody">
+              <tr><td colspan="7" style="text-align:center;color:var(--text-tertiary);padding:32px">
+                <div class="skeleton" style="height:16px;width:60%;margin:0 auto"></div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script src="../js/admin-dashboard.js"></script>
+</body>
+</html>

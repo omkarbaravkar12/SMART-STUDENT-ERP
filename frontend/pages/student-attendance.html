@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Attendance — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">My Attendance</div><div class="breadcrumb">Student Portal · Attendance Records</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>My Attendance</h1><p>Track your attendance across all subjects</p></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(16,185,129,0.15)">✅</div></div><div class="sc-value" id="st_present">—</div><div class="sc-label">Present</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(239,68,68,0.15)">❌</div></div><div class="sc-value" id="st_absent">—</div><div class="sc-label">Absent</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(245,158,11,0.15)">⏰</div></div><div class="sc-value" id="st_late">—</div><div class="sc-label">Late</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(99,102,241,0.15)">📊</div></div><div class="sc-value" id="st_pct">—</div><div class="sc-label">Overall %</div></div>
+    </div>
+
+    <!-- Charts -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:4px">Attendance by Subject</div>
+        <div class="card-subtitle">Current semester percentage</div>
+        <canvas id="subjectChart" height="120"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">Subject Summary</div>
+        <div id="subjectSummary"></div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <select class="form-select" id="subjectFilter" onchange="loadRecords()" style="width:200px">
+        <option value="">All Subjects</option>
+      </select>
+      <input type="date" class="form-input" id="fromDate" style="width:160px" onchange="loadRecords()"/>
+      <input type="date" class="form-input" id="toDate"   style="width:160px" onchange="loadRecords()"/>
+      <select class="form-select" id="statusFilter" onchange="loadRecords()" style="width:140px">
+        <option value="">All Status</option>
+        <option value="present">Present</option>
+        <option value="absent">Absent</option>
+        <option value="late">Late</option>
+      </select>
+    </div>
+
+    <!-- Records Table -->
+    <div class="table-wrapper">
+      <div class="table-toolbar"><span class="table-title" id="recCount">Attendance Records</span></div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>Date</th><th>Subject</th><th>Status</th><th>Remarks</th></tr></thead>
+          <tbody id="recBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="student-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item active" href="student-attendance.html"><span class="nav-icon">📅</span><span class="nav-label">My Attendance</span></a>
+<a class="nav-item" href="student-timetable.html"><span class="nav-icon">🗓️</span><span class="nav-label">Timetable</span></a>
+<a class="nav-item" href="student-results.html"><span class="nav-icon">📝</span><span class="nav-label">Exam Results</span></a>
+<a class="nav-item" href="student-fees.html"><span class="nav-icon">💳</span><span class="nav-label">My Fees</span></a>
+<a class="nav-item" href="student-library.html"><span class="nav-icon">📚</span><span class="nav-label">Library</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">S</div><div class="user-info"><div class="user-name" id="userNameSidebar">Student</div><div class="user-role" id="userRoleSidebar">student</div></div></div></div>`;
+
+let myStudentId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const studRes = await StudentsAPI.list({ limit: 1 });
+  const students = studRes?.data?.data || [];
+  if (!students.length) { Toast.error('Could not load student profile'); return; }
+  myStudentId = students[0].id;
+
+  // Load subjects for filter
+  const subRes = await SubjectsAPI.list();
+  if (subRes?.ok) {
+    (subRes.data?.data || []).forEach(s => {
+      document.getElementById('subjectFilter').innerHTML += `<option value="${s.id}">${s.name}</option>`;
+    });
+  }
+
+  loadRecords();
+});
+
+async function loadRecords() {
+  if (!myStudentId) return;
+  const subjectId = document.getElementById('subjectFilter').value;
+  const from      = document.getElementById('fromDate').value;
+  const to        = document.getElementById('toDate').value;
+
+  const res = await StudentsAPI.attendance(myStudentId, { subjectId, from, to });
+  const records = res?.data?.data || [];
+
+  // Stats
+  const present = records.filter(r => r.status === 'present').length;
+  const absent  = records.filter(r => r.status === 'absent').length;
+  const late    = records.filter(r => r.status === 'late').length;
+  const pct     = records.length ? Math.round((present + late) / records.length * 100) : 0;
+
+  document.getElementById('st_present').textContent = present;
+  document.getElementById('st_absent').textContent  = absent;
+  document.getElementById('st_late').textContent    = late;
+  document.getElementById('st_pct').textContent     = pct + '%';
+
+  // Group by subject for chart
+  const bySubject = {};
+  records.forEach(r => {
+    if (!bySubject[r.subjectName]) bySubject[r.subjectName] = { total: 0, present: 0 };
+    bySubject[r.subjectName].total++;
+    if (r.status === 'present' || r.status === 'late') bySubject[r.subjectName].present++;
+  });
+
+  const subNames = Object.keys(bySubject);
+  const subPcts  = subNames.map(s => Math.round(bySubject[s].present / bySubject[s].total * 100));
+
+  // Chart
+  const ctx = document.getElementById('subjectChart');
+  if (window.subChart) window.subChart.destroy();
+  if (subNames.length) {
+    const c = getChartDefaults();
+    window.subChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: subNames.map(s => s.length > 15 ? s.substring(0,15)+'...' : s),
+        datasets: [{ data: subPcts, backgroundColor: subPcts.map(p => p >= 75 ? '#10b981' : '#ef4444'), borderRadius: 6 }]
+      },
+      options: { ...buildBarChartOptions(), plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100 } } }
+    });
+  }
+
+  // Subject summary
+  document.getElementById('subjectSummary').innerHTML = subNames.map(s => {
+    const p = Math.round(bySubject[s].present / bySubject[s].total * 100);
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px">
+        <span style="font-weight:500">${s.length > 20 ? s.substring(0,20)+'...' : s}</span>
+        <span style="font-weight:700;color:${p>=75?'var(--brand-success)':'var(--brand-danger)'}">${p}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${p}%;background:${p>=75?'var(--brand-success)':'var(--brand-danger)'}"></div></div>
+    </div>`;
+  }).join('') || '<p style="color:var(--text-secondary);font-size:0.85rem">No data yet</p>';
+
+  // Table
+  const tbody = document.getElementById('recBody');
+  document.getElementById('recCount').textContent = `Records (${records.length})`;
+  if (!records.length) { tbody.innerHTML = renderEmptyRow(4, 'No attendance records found'); return; }
+
+  // Filter by status
+  const statusFilter = document.getElementById('statusFilter').value;
+  const filtered = statusFilter ? records.filter(r => r.status === statusFilter) : records;
+
+  tbody.innerHTML = filtered.map(r => `
+    <tr>
+      <td style="font-weight:500">${formatDate(r.date)}</td>
+      <td>${r.subjectName}</td>
+      <td>${createStatusBadge(r.status)}</td>
+      <td style="color:var(--text-secondary);font-size:0.82rem">${r.remarks || '—'}</td>
+    </tr>
+  `).join('');
+}
+</script>
+</body>
+</html>

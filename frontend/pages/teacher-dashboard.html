@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Teacher Dashboard — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div>
+    <span class="brand-name">Smart ERP</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item active" href="teacher-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+    <a class="nav-item" href="teacher-attendance.html"><span class="nav-icon">📅</span><span class="nav-label">Mark Attendance</span></a>
+    <a class="nav-item" href="teacher-marks.html"><span class="nav-icon">📝</span><span class="nav-label">Upload Marks</span></a>
+    <a class="nav-item" href="teacher-timetable.html"><span class="nav-icon">🗓️</span><span class="nav-label">My Timetable</span></a>
+    <a class="nav-item" href="teacher-students.html"><span class="nav-icon">🎓</span><span class="nav-label">My Students</span></a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar" id="userAvatarSidebar">T</div>
+      <div class="user-info">
+        <div class="user-name" id="userNameSidebar">Teacher</div>
+        <div class="user-role" id="userRoleSidebar">teacher</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">Teacher Dashboard</div><div class="breadcrumb">Teacher Portal · <span id="currentDate"></span></div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<main class="main-content">
+  <div class="content-inner">
+
+    <!-- Greeting Banner -->
+    <div style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.15));border:1px solid rgba(99,102,241,0.3);border-radius:16px;padding:28px;margin-bottom:24px;position:relative;overflow:hidden">
+      <div style="position:absolute;right:20px;top:-10px;font-size:80px;opacity:0.08">👩‍🏫</div>
+      <h2 style="font-family:var(--font-display);font-size:1.5rem;font-weight:800;margin-bottom:6px">Welcome, <span id="teacherName">Teacher</span>! 👋</h2>
+      <p style="color:var(--text-secondary);font-size:0.9rem">Manage your classes, students and academic activities</p>
+      <div style="display:flex;gap:20px;margin-top:20px;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div style="font-size:1.5rem;font-weight:800;font-family:var(--font-display);color:var(--brand-primary)" id="heroSubjects">—</div>
+          <div style="font-size:0.72rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px">Subjects</div>
+        </div>
+        <div style="width:1px;background:var(--border-subtle)"></div>
+        <div style="text-align:center">
+          <div style="font-size:1.5rem;font-weight:800;font-family:var(--font-display);color:var(--brand-success)" id="heroStudents">—</div>
+          <div style="font-size:0.72rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px">Students</div>
+        </div>
+        <div style="width:1px;background:var(--border-subtle)"></div>
+        <div style="text-align:center">
+          <div style="font-size:1.5rem;font-weight:800;font-family:var(--font-display);color:var(--brand-warning)" id="heroExams">—</div>
+          <div style="font-size:0.72rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px">Upcoming Exams</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(99,102,241,0.15)">📚</div></div><div class="sc-value" id="st_subjects">—</div><div class="sc-label">My Subjects</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(16,185,129,0.15)">🎓</div></div><div class="sc-value" id="st_students">—</div><div class="sc-label">My Students</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(245,158,11,0.15)">📅</div></div><div class="sc-value" id="st_today">—</div><div class="sc-label">Classes Today</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(239,68,68,0.15)">📝</div></div><div class="sc-value" id="st_exams">—</div><div class="sc-label">Upcoming Exams</div></div>
+    </div>
+
+    <!-- Today's Schedule + Quick Actions -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px">
+      <div class="card">
+        <div class="card-header-row">
+          <div><div class="card-title">📅 Today's Schedule</div><div class="card-subtitle" id="todayDay">Loading...</div></div>
+          <a href="teacher-timetable.html" class="btn btn-secondary btn-sm">Full Timetable</a>
+        </div>
+        <div id="todaySchedule">
+          <div class="skeleton" style="height:60px;margin-bottom:8px;border-radius:8px"></div>
+          <div class="skeleton" style="height:60px;border-radius:8px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">⚡ Quick Actions</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a href="teacher-attendance.html" class="btn btn-primary" style="justify-content:center">📅 Mark Attendance</a>
+          <a href="teacher-marks.html" class="btn btn-secondary" style="justify-content:center">📝 Upload Marks</a>
+          <a href="teacher-students.html" class="btn btn-secondary" style="justify-content:center">🎓 View My Students</a>
+          <a href="notifications.html" class="btn btn-secondary" style="justify-content:center">🔔 Notifications</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Attendance Summary Chart -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">Attendance Overview</div>
+        <canvas id="attChart" height="180"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-header-row">
+          <div><div class="card-title">⚠ Low Attendance Students</div></div>
+          <a href="teacher-attendance.html" class="btn btn-secondary btn-sm">Details</a>
+        </div>
+        <div id="lowAttList">
+          <div class="skeleton" style="height:40px;margin-bottom:8px;border-radius:6px"></div>
+          <div class="skeleton" style="height:40px;border-radius:6px"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = Auth.getUser();
+  if (user) {
+    document.getElementById('teacherName').textContent    = user.firstName;
+    document.getElementById('userNameSidebar').textContent = `${user.firstName} ${user.lastName}`;
+    document.getElementById('userAvatarSidebar').textContent = `${user.firstName[0]}${user.lastName?.[0]||''}`.toUpperCase();
+  }
+
+  const today = DAYS[new Date().getDay()];
+  document.getElementById('todayDay').textContent   = today;
+  document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // Load teacher info
+  const teacherRes = await TeachersAPI.list({});
+  const teachers   = teacherRes?.data?.data || [];
+  const myTeacher  = teachers.find(t => t.email === user?.email);
+
+  // Load subjects
+  const subRes  = await SubjectsAPI.list();
+  const subjects = subRes?.data?.data || [];
+  document.getElementById('st_subjects').textContent  = subjects.length;
+  document.getElementById('heroSubjects').textContent = subjects.length;
+
+  // Load students
+  const studRes  = await StudentsAPI.list({ limit: 1 });
+  const total    = studRes?.data?.meta?.total || 0;
+  document.getElementById('st_students').textContent  = total;
+  document.getElementById('heroStudents').textContent = total;
+
+  // Load exams
+  const examRes = await ExamsAPI.list({ semester: 'Fall' });
+  const exams   = examRes?.data?.data || [];
+  const upcoming = exams.filter(e => new Date(e.exam_date) >= new Date()).length;
+  document.getElementById('st_exams').textContent    = upcoming;
+  document.getElementById('heroExams').textContent   = upcoming;
+
+  // Today's timetable
+  const ttRes = await TimetableAPI.list({});
+  const tt    = ttRes?.data?.data || [];
+  const todaySlots = tt.filter(t => t.day_of_week === today);
+  document.getElementById('st_today').textContent = todaySlots.length;
+
+  const schedEl = document.getElementById('todaySchedule');
+  if (!todaySlots.length) {
+    schedEl.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;text-align:center;padding:20px">No classes today 🎉</p>';
+  } else {
+    schedEl.innerHTML = todaySlots.map(s => `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-elevated);border-radius:10px;margin-bottom:8px">
+        <div style="background:rgba(99,102,241,0.15);color:var(--brand-primary);padding:8px 12px;border-radius:8px;font-size:0.75rem;font-weight:700;white-space:nowrap">
+          ${String(s.start_time).substring(0,5)} - ${String(s.end_time).substring(0,5)}
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:0.87rem">${s.subject_name}</div>
+          <div style="font-size:0.72rem;color:var(--text-tertiary)">${s.course_name} · Room ${s.room || 'TBD'}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Attendance summary
+  const attRes  = await AttendanceAPI.summary();
+  const summary = attRes?.data?.data || [];
+  const low     = summary.filter(s => Number(s.attendance_percent) < 75);
+
+  document.getElementById('lowAttList').innerHTML = low.length
+    ? low.slice(0,5).map(s => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-subtle)">
+          <div>
+            <div style="font-weight:500;font-size:0.85rem">${s.student_name}</div>
+            <div style="font-size:0.72rem;color:var(--text-tertiary)">${s.subject_name}</div>
+          </div>
+          <span style="color:var(--brand-danger);font-weight:700">${s.attendance_percent}%</span>
+        </div>`).join('')
+    : '<p style="color:var(--brand-success);font-size:0.85rem;padding:12px 0">All students above 75% ✓</p>';
+
+  // Chart
+  const bySubject = {};
+  summary.forEach(s => {
+    if (!bySubject[s.subject_name]) bySubject[s.subject_name] = { total:0, present:0 };
+    bySubject[s.subject_name].total   += Number(s.total_classes || 0);
+    bySubject[s.subject_name].present += Number(s.present_count || 0);
+  });
+  const subNames = Object.keys(bySubject);
+  const subPcts  = subNames.map(s => bySubject[s].total ? Math.round(bySubject[s].present/bySubject[s].total*100) : 0);
+  const c = getChartDefaults();
+  if (subNames.length) {
+    new Chart(document.getElementById('attChart'), {
+      type: 'bar',
+      data: { labels: subNames.map(s => s.length>15?s.substring(0,15)+'...':s), datasets: [{ data: subPcts, backgroundColor: subPcts.map(p => p>=75?'#10b981':'#ef4444'), borderRadius:6 }] },
+      options: { ...buildBarChartOptions(), plugins:{legend:{display:false}}, scales:{y:{min:0,max:100}} }
+    });
+  }
+});
+</script>
+</body>
+</html>

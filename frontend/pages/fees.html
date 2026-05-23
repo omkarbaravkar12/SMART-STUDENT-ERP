@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fee Management — Smart ERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <header class="top-header">
+    <div class="header-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+      <div><div class="page-title">Fee Management</div><div class="breadcrumb">Finance · Payments & Invoices</div></div>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" onclick="toggleTheme()"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg></button>
+      <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="content-inner">
+      <div class="page-header">
+        <div><h1>Fee Management</h1><p>Track payments, manage fee structures, and generate invoices</p></div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" onclick="loadTab('structures')">Fee Structures</button>
+          <button class="btn btn-primary" onclick="openRecordPaymentModal()">+ Record Payment</button>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px" id="feeStats">
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--border-subtle);padding-bottom:0">
+        <button class="tab-btn active" id="tab_payments" onclick="loadTab('payments')">Payments</button>
+        <button class="tab-btn" id="tab_structures" onclick="loadTab('structures')">Fee Structures</button>
+        <button class="tab-btn" id="tab_invoices" onclick="loadTab('invoices')">Invoices</button>
+      </div>
+
+      <!-- Filters -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap" id="paymentsFilters">
+        <input type="text" class="form-input" placeholder="🔍 Search student..." id="feeSearch" style="flex:1;min-width:180px" oninput="filterPayments()"/>
+        <select class="form-select" id="feeStatusFilter" onchange="filterPayments()" style="width:150px">
+          <option value="">All Status</option>
+          <option value="paid">Paid</option>
+          <option value="pending">Pending</option>
+          <option value="partial">Partial</option>
+          <option value="overdue">Overdue</option>
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrapper" id="paymentsTable">
+        <div class="table-toolbar"><span class="table-title" id="feeTableCount">Payments</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr>
+              <th>Student</th><th>Payment Ref</th><th>Course</th>
+              <th>Amount Due</th><th>Amount Paid</th><th>Status</th>
+              <th>Due Date</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="paymentsBody"></tbody>
+          </table>
+        </div>
+        <div id="feesPagination"></div>
+      </div>
+
+      <!-- Structures (hidden) -->
+      <div id="structuresPanel" style="display:none">
+        <div class="table-wrapper">
+          <div class="table-toolbar">
+            <span class="table-title">Fee Structures</span>
+            <button class="btn btn-primary btn-sm" onclick="openCreateFeeStructureModal()">+ New Structure</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr><th>Course</th><th>Year</th><th>Semester</th><th>Tuition</th><th>Exam</th><th>Library</th><th>Lab</th><th>Total</th><th>Due Date</th></tr></thead>
+              <tbody id="structuresBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invoices (hidden) -->
+      <div id="invoicesPanel" style="display:none">
+        <div class="table-wrapper">
+          <div class="table-toolbar"><span class="table-title">Invoices</span></div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr><th>Invoice #</th><th>Student</th><th>Date</th><th>Amount</th><th>Payment Method</th><th>Actions</th></tr></thead>
+              <tbody id="invoicesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Record Payment Modal -->
+<div id="paymentModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span class="modal-title">Record Payment</span><button class="modal-close" onclick="document.getElementById('paymentModal').style.display='none'">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field form-full"><label class="form-label">Payment ID</label><input class="form-input" id="pay_paymentId" placeholder="Payment record ID"/></div>
+        <div class="form-field form-full"><label class="form-label">Student ID</label><input class="form-input" id="pay_studentId" placeholder="Student DB ID"/></div>
+        <div class="form-field"><label class="form-label">Amount Paid (₹)</label><input class="form-input" id="pay_amount" type="number" placeholder="50000"/></div>
+        <div class="form-field"><label class="form-label">Payment Method</label>
+          <select class="form-select" id="pay_method">
+            <option value="Cash">Cash</option><option value="UPI">UPI</option>
+            <option value="NEFT">NEFT/RTGS</option><option value="Online">Online</option><option value="Cheque">Cheque</option>
+          </select>
+        </div>
+        <div class="form-field form-full"><label class="form-label">Transaction ID</label><input class="form-input" id="pay_txnId" placeholder="TXN12345 (optional)"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('paymentModal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary" onclick="submitPayment()">Record Payment</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.tab-btn {
+  padding: 10px 20px; background: none; border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary); cursor: pointer;
+  font-family: var(--font-body); font-size: 0.87rem; font-weight: 500;
+  transition: var(--transition-fast); margin-bottom: -1px;
+}
+.tab-btn.active, .tab-btn:hover { color: var(--brand-primary); border-bottom-color: var(--brand-primary); }
+</style>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+// Inject simple sidebar
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon"><svg viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="14" fill="url(#sgf)"/><path d="M24 10L38 17V25C38 33 31 39.5 24 42C17 39.5 10 33 10 25V17L24 10Z" fill="white" fill-opacity="0.9"/><defs><linearGradient id="sgf" x1="0" y1="0" x2="48" y2="48"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs></svg></div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="admin-dashboard.html"><svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"/></svg><span class="nav-label">Dashboard</span></a>
+<a class="nav-item" href="students.html"><svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="nav-label">Students</span></a>
+<a class="nav-item active" href="fees.html"><svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/></svg><span class="nav-label">Fee Management</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">A</div><div class="user-info"><div class="user-name" id="userNameSidebar">Admin</div><div class="user-role" id="userRoleSidebar">accountant</div></div></div></div>`;
+
+let feeCurrentPage = 1;
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadFeeStats();
+  loadPayments();
+});
+
+async function loadFeeStats() {
+  const res = await AnalyticsAPI.fees();
+  if (!res?.ok) return;
+  const d = res.data?.data || {};
+  document.getElementById('feeStats').innerHTML = `
+    <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(99,102,241,0.15)">💰</div></div><div class="sc-value">${formatCurrency(d.total_collected || 0)}</div><div class="sc-label">Collected</div></div>
+    <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(245,158,11,0.15)">⏳</div></div><div class="sc-value">${formatCurrency(d.total_pending || 0)}</div><div class="sc-label">Outstanding</div></div>
+    <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(16,185,129,0.15)">📊</div></div><div class="sc-value">${formatCurrency(d.total_expected || 0)}</div><div class="sc-label">Total Expected</div></div>
+    <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(239,68,68,0.15)">⚠</div></div><div class="sc-value">${(d.statusDistribution||[]).find(s=>s.status==='overdue')?.count||0}</div><div class="sc-label">Overdue</div></div>
+  `;
+}
+
+async function loadPayments() {
+  const tbody = document.getElementById('paymentsBody');
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-tertiary)">Loading...</td></tr>`;
+  const status  = document.getElementById('feeStatusFilter')?.value || '';
+  const res     = await FeesAPI.payments({ status, page: feeCurrentPage });
+  if (!res?.ok) { tbody.innerHTML = renderEmptyRow(8, 'Failed to load payments'); return; }
+  const payments = res.data?.data || [];
+  document.getElementById('feeTableCount').textContent = `Payments (${payments.length})`;
+  if (!payments.length) { tbody.innerHTML = renderEmptyRow(8); return; }
+  tbody.innerHTML = payments.map(p => `
+    <tr>
+      <td><div style="font-weight:500">${p.student_name || p.studentName}</div><div style="font-size:0.72rem;color:var(--text-tertiary)">${p.roll_no || p.rollNo}</div></td>
+      <td><span style="font-family:monospace;font-size:0.78rem">${p.payment_ref || p.paymentRef}</span></td>
+      <td style="font-size:0.82rem">${p.course_name || p.courseName || '—'}</td>
+      <td style="font-weight:600">${formatCurrency(p.amount_due || p.amountDue)}</td>
+      <td style="color:var(--brand-success);font-weight:600">${formatCurrency(p.amount_paid || p.amountPaid)}</td>
+      <td>${createStatusBadge(p.payment_status || p.paymentStatus)}</td>
+      <td><span style="font-size:0.82rem">${formatDate(p.due_date || p.dueDate)}</span></td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-primary btn-sm" onclick="openPayModal(${p.id},'${p.student_id||p.studentId||0}')" ${p.payment_status==='paid'?'disabled':''}>Pay</button>
+          <button class="btn btn-secondary btn-sm" onclick="Toast.info('Invoice downloaded')">Invoice</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterPayments() { feeCurrentPage = 1; loadPayments(); }
+
+function openRecordPaymentModal() { document.getElementById('paymentModal').style.display = 'flex'; }
+function openPayModal(payId, studentId) {
+  document.getElementById('pay_paymentId').value = payId;
+  document.getElementById('pay_studentId').value = studentId;
+  document.getElementById('paymentModal').style.display = 'flex';
+}
+
+async function submitPayment() {
+  const data = {
+    paymentId: document.getElementById('pay_paymentId').value,
+    studentId: document.getElementById('pay_studentId').value,
+    amountPaid: document.getElementById('pay_amount').value,
+    paymentMethod: document.getElementById('pay_method').value,
+    transactionId: document.getElementById('pay_txnId').value,
+  };
+  if (!data.paymentId || !data.amountPaid) { Toast.error('Payment ID and amount are required'); return; }
+  const res = await FeesAPI.pay(data);
+  if (!res?.ok) { Toast.error(res?.data?.error || 'Payment failed'); return; }
+  Toast.success('Payment recorded! Invoice generated.');
+  document.getElementById('paymentModal').style.display = 'none';
+  loadPayments(); loadFeeStats();
+}
+
+async function loadTab(tab) {
+  ['payments','structures','invoices'].forEach(t => {
+    const btn = document.getElementById(`tab_${t}`);
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+  document.getElementById('paymentsTable').style.display = tab === 'payments' ? 'block' : 'none';
+  document.getElementById('paymentsFilters').style.display = tab === 'payments' ? 'flex' : 'none';
+  document.getElementById('structuresPanel').style.display = tab === 'structures' ? 'block' : 'none';
+  document.getElementById('invoicesPanel').style.display   = tab === 'invoices' ? 'block' : 'none';
+
+  if (tab === 'structures') await loadStructures();
+  if (tab === 'invoices')   await loadInvoices();
+}
+
+async function loadStructures() {
+  const tbody = document.getElementById('structuresBody');
+  const res = await FeesAPI.structures();
+  if (!res?.ok) { tbody.innerHTML = renderEmptyRow(9, 'No fee structures'); return; }
+  const structures = res.data?.data || [];
+  tbody.innerHTML = structures.map(s => `
+    <tr>
+      <td style="font-weight:500">${s.course_name}</td>
+      <td>${s.academic_year}</td>
+      <td>Sem ${s.semester}</td>
+      <td>${formatCurrency(s.tuition_fee)}</td>
+      <td>${formatCurrency(s.exam_fee)}</td>
+      <td>${formatCurrency(s.library_fee)}</td>
+      <td>${formatCurrency(s.lab_fee)}</td>
+      <td style="font-weight:700;color:var(--brand-primary)">${formatCurrency(s.total_fee)}</td>
+      <td>${formatDate(s.due_date)}</td>
+    </tr>
+  `).join('');
+}
+
+async function loadInvoices() {
+  const tbody = document.getElementById('invoicesBody');
+  const res = await FeesAPI.invoices();
+  if (!res?.ok) { tbody.innerHTML = renderEmptyRow(6, 'No invoices'); return; }
+  const invoices = res.data?.data || [];
+  tbody.innerHTML = invoices.map(i => `
+    <tr>
+      <td><span style="font-family:monospace;font-size:0.78rem">${i.invoice_number}</span></td>
+      <td>${i.student_name}</td>
+      <td>${formatDate(i.invoice_date)}</td>
+      <td style="font-weight:600;color:var(--brand-success)">${formatCurrency(i.total_amount)}</td>
+      <td><span class="badge badge-info">${i.payment_method || 'N/A'}</span></td>
+      <td><button class="btn btn-secondary btn-sm" onclick="Toast.info('Downloading invoice...')">Download PDF</button></td>
+    </tr>
+  `).join('');
+}
+
+function openCreateFeeStructureModal() { Toast.info('Fee structure creation modal coming soon'); }
+</script>
+</body>
+</html>

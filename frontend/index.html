@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Smart Student ERP — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --brand-primary: #6366f1;
+  --brand-secondary: #8b5cf6;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+[data-theme="dark"] {
+  --bg-base: #0a0a0f;
+  --bg-surface: #111118;
+  --bg-elevated: #1a1a24;
+  --bg-hover: #2a2a38;
+  --border-normal: rgba(255,255,255,0.10);
+  --glass-bg: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.08);
+  --text-primary: #f1f1f5;
+  --text-secondary: #a0a0b8;
+  --text-tertiary: #60607a;
+  --shadow-xl: 0 16px 48px rgba(0,0,0,0.7);
+}
+[data-theme="light"] {
+  --bg-base: #f4f4f8;
+  --bg-surface: #ffffff;
+  --bg-elevated: #fafafa;
+  --bg-hover: #e8e8f0;
+  --border-normal: rgba(0,0,0,0.08);
+  --glass-bg: rgba(255,255,255,0.7);
+  --glass-border: rgba(255,255,255,0.9);
+  --text-primary: #18181f;
+  --text-secondary: #4a4a60;
+  --text-tertiary: #8a8aa0;
+  --shadow-xl: 0 16px 48px rgba(0,0,0,0.15);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: background 0.3s ease;
+  overflow-x: hidden;
+}
+
+/* Background orbs */
+.bg-orbs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: 0.3;
+  animation: orb-float 14s ease-in-out infinite alternate;
+}
+.orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, #6366f1, transparent); top: -100px; left: -100px; }
+.orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, #8b5cf6, transparent); bottom: -80px; right: -80px; animation-duration: 18s; }
+.orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, #06b6d4, transparent); top: 50%; left: 50%; transform: translate(-50%,-50%); animation-duration: 22s; }
+@keyframes orb-float {
+  0%   { transform: translate(0,0) scale(1); }
+  100% { transform: translate(30px,20px) scale(1.1); }
+}
+
+/* Layout */
+.login-wrapper {
+  position: relative; z-index: 1;
+  min-height: 100vh; display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media(max-width:900px) {
+  .login-wrapper { grid-template-columns: 1fr; }
+  .brand-panel { display: none; }
+}
+
+/* Brand Panel */
+.brand-panel {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 60px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+  border-right: 1px solid var(--border-normal);
+}
+.brand-logo { display: flex; align-items: center; gap: 16px; margin-bottom: 48px; }
+.logo-icon { width: 56px; height: 56px; background: linear-gradient(135deg,#6366f1,#8b5cf6); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 16px rgba(99,102,241,0.4); }
+.brand-text h1 { font-family: var(--font-display); font-size: 2rem; font-weight: 800; background: linear-gradient(135deg,#6366f1,#8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+.brand-text span { font-size: 0.82rem; color: var(--text-secondary); }
+
+.brand-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 48px; }
+.feature-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  background: var(--glass-bg); backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px; font-size: 0.88rem;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+  animation: fade-left 0.5s ease forwards; opacity: 0;
+}
+.feature-item:nth-child(1){animation-delay:0.1s}
+.feature-item:nth-child(2){animation-delay:0.2s}
+.feature-item:nth-child(3){animation-delay:0.3s}
+.feature-item:nth-child(4){animation-delay:0.4s}
+.feature-item:nth-child(5){animation-delay:0.5s}
+.feature-item:hover { border-color: rgba(99,102,241,0.4); color: var(--text-primary); transform: translateX(4px); }
+@keyframes fade-left { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
+
+.brand-stats { display: flex; gap: 32px; }
+.stat { text-align: center; }
+.stat-num { display: block; font-family: var(--font-display); font-size: 2rem; font-weight: 800; background: linear-gradient(135deg,#6366f1,#8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.stat-label { font-size: 0.72rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; }
+
+/* Login Panel */
+.login-panel {
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 40px; min-height: 100vh;
+}
+.login-card {
+  width: 100%; max-width: 420px;
+  background: var(--glass-bg); backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px; padding: 40px;
+  box-shadow: var(--shadow-xl);
+  animation: card-rise 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  opacity: 0; transform: translateY(30px);
+}
+@keyframes card-rise { to{opacity:1;transform:translateY(0)} }
+
+.card-header { margin-bottom: 32px; }
+.card-header h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; }
+.card-header p { font-size: 0.88rem; color: var(--text-secondary); }
+
+.alert { padding: 12px 16px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 20px; border: 1px solid; display: none; }
+.alert-error   { background: rgba(239,68,68,0.1);  border-color: rgba(239,68,68,0.3);  color: #fca5a5; display: block; }
+.alert-success { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); color: #6ee7b7; display: block; }
+
+.form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.form-group label { font-size: 0.82rem; font-weight: 500; color: var(--text-secondary); }
+.input-wrapper { position: relative; }
+.input-wrapper input {
+  width: 100%; padding: 12px 14px;
+  background: var(--bg-elevated); color: var(--text-primary);
+  border: 1px solid var(--border-normal); border-radius: 10px;
+  font-family: var(--font-body); font-size: 0.9rem;
+  outline: none; transition: all 0.2s ease;
+}
+.input-wrapper input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+.input-wrapper input::placeholder { color: var(--text-tertiary); }
+
+.btn-login {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  color: white; border: none; border-radius: 10px;
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+  margin-bottom: 24px;
+}
+.btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(99,102,241,0.45); }
+.btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.demo-section { border-top: 1px solid var(--border-normal); padding-top: 20px; }
+.demo-title { font-size: 0.75rem; color: var(--text-tertiary); text-align: center; margin-bottom: 12px; }
+.demo-title code { color: #6366f1; }
+.demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.demo-btn {
+  padding: 9px 12px; font-size: 0.78rem;
+  background: var(--bg-elevated); color: var(--text-secondary);
+  border: 1px solid var(--border-normal); border-radius: 8px;
+  cursor: pointer; transition: all 0.15s ease; text-align: left;
+}
+.demo-btn:hover { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,0.06); }
+
+.theme-btn {
+  margin-top: 20px;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--bg-elevated); border: 1px solid var(--border-normal);
+  color: var(--text-secondary); font-size: 1.1rem;
+  cursor: pointer; transition: all 0.2s ease;
+}
+.theme-btn:hover { border-color: #6366f1; transform: rotate(20deg); }
+</style>
+</head>
+<body>
+
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div class="login-wrapper">
+
+  <!-- Brand Panel -->
+  <div class="brand-panel">
+    <div class="brand-logo">
+      <div class="logo-icon">🎓</div>
+      <div class="brand-text">
+        <h1>Smart ERP</h1>
+        <span>Education Management System</span>
+      </div>
+    </div>
+    <div class="brand-features">
+      <div class="feature-item"><span>🎓</span> Student & Teacher Management</div>
+      <div class="feature-item"><span>📊</span> Real-time Analytics Dashboard</div>
+      <div class="feature-item"><span>💳</span> Fee & Finance Management</div>
+      <div class="feature-item"><span>📅</span> Attendance & Timetable</div>
+      <div class="feature-item"><span>📚</span> Library & Exam Management</div>
+    </div>
+    <div class="brand-stats">
+      <div class="stat"><span class="stat-num" id="cntStudents">247</span><span class="stat-label">Students</span></div>
+      <div class="stat"><span class="stat-num" id="cntTeachers">32</span><span class="stat-label">Teachers</span></div>
+      <div class="stat"><span class="stat-num" id="cntCourses">12</span><span class="stat-label">Courses</span></div>
+    </div>
+  </div>
+
+  <!-- Login Panel -->
+  <div class="login-panel">
+    <div class="login-card">
+      <div class="card-header">
+        <h2>Welcome back 👋</h2>
+        <p>Sign in to your account to continue</p>
+      </div>
+
+      <div class="alert" id="alertBox"></div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="input-wrapper">
+          <input type="email" id="emailInput" placeholder="admin@erp.edu" autocomplete="off"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrapper">
+          <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="off"/>
+        </div>
+      </div>
+
+      <button type="button" class="btn-login" id="loginBtn" onclick="doLogin()">
+        Sign In
+      </button>
+
+      <div class="demo-section">
+        <p class="demo-title">Demo Accounts · Password: <code>Password@123</code></p>
+        <div class="demo-grid">
+          <button type="button" class="demo-btn" onclick="fillDemo('admin@erp.edu')">👑 Admin</button>
+          <button type="button" class="demo-btn" onclick="fillDemo('priya.t@erp.edu')">👩‍🏫 Teacher</button>
+          <button type="button" class="demo-btn" onclick="fillDemo('amit.s@erp.edu')">🎓 Student</button>
+          <button type="button" class="demo-btn" onclick="fillDemo('finance@erp.edu')">💼 Accountant</button>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="theme-btn" onclick="toggleTheme()">🌙</button>
+  </div>
+</div>
+
+<script>
+// Apply saved theme
+const savedTheme = localStorage.getItem('erp_theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+
+// Clear old sessions
+localStorage.removeItem('erp_token');
+localStorage.removeItem('erp_user');
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('erp_theme', next);
+  document.querySelector('.theme-btn').textContent = next === 'dark' ? '🌙' : '☀️';
+}
+
+function fillDemo(email) {
+  document.getElementById('emailInput').value    = email;
+  document.getElementById('passwordInput').value = 'Password@123';
+  hideAlert();
+}
+
+function showAlert(msg, type) {
+  const box = document.getElementById('alertBox');
+  box.textContent = msg;
+  box.className   = 'alert alert-' + type;
+}
+
+function hideAlert() {
+  document.getElementById('alertBox').className = 'alert';
+  document.getElementById('alertBox').style.display = 'none';
+}
+
+async function doLogin() {
+  const email    = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value.trim();
+  const btn      = document.getElementById('loginBtn');
+
+  if (!email || !password) {
+    showAlert('Please enter email and password!', 'error');
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'Signing in...';
+  hideAlert();
+
+  try {
+    const response = await fetch('http://localhost:8080/api/auth/login', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email: email, password: password })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      showAlert(data.error || 'Invalid email or password', 'error');
+      btn.disabled    = false;
+      btn.textContent = 'Sign In';
+      return;
+    }
+
+    const token = data.data.token;
+    const user  = data.data.user;
+
+    localStorage.setItem('erp_token', token);
+    localStorage.setItem('erp_user',  JSON.stringify(user));
+
+    showAlert('Login successful! Redirecting...', 'success');
+    btn.textContent = '✓ Redirecting...';
+
+    const routes = {
+      admin:      'pages/admin-dashboard.html',
+      teacher:    'pages/teacher-dashboard.html',
+      student:    'pages/student-dashboard.html',
+      accountant: 'pages/fees.html',
+    };
+
+    setTimeout(function() {
+      window.location.href = routes[user.role] || 'pages/admin-dashboard.html';
+    }, 1000);
+
+  } catch(err) {
+    showAlert('Cannot connect! Make sure backend is running on port 8080.', 'error');
+    btn.disabled    = false;
+    btn.textContent = 'Sign In';
+  }
+}
+
+// Enter key support
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); doLogin(); }
+});
+</script>
+
+</body>
+</html>

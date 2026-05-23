@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mark Attendance — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">Mark Attendance</div><div class="breadcrumb">Teacher Portal · Attendance</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>Mark Attendance</h1><p>Record student attendance for your subjects</p></div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="saveAllAttendance()" id="saveBtn">💾 Save Attendance</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+        <div class="form-field">
+          <label class="form-label">Subject *</label>
+          <select class="form-select" id="subjectSelect" onchange="loadStudentList()">
+            <option value="">Select Subject</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Date *</label>
+          <input class="form-input" type="date" id="dateSelect" onchange="loadStudentList()"/>
+        </div>
+        <div class="form-field" style="display:flex;align-items:flex-end">
+          <button class="btn btn-secondary" style="width:100%" onclick="markAllPresent()">✅ Mark All Present</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student List -->
+    <div class="table-wrapper" id="studentListWrapper" style="display:none">
+      <div class="table-toolbar">
+        <span class="table-title" id="attTitle">Students</span>
+        <div style="display:flex;gap:8px">
+          <span id="presentCount" style="color:var(--brand-success);font-size:0.85rem;font-weight:600">Present: 0</span>
+          <span style="color:var(--text-tertiary)">|</span>
+          <span id="absentCount" style="color:var(--brand-danger);font-size:0.85rem;font-weight:600">Absent: 0</span>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr>
+            <th>Student</th><th>Roll No</th><th>Status</th><th>Remarks</th>
+          </tr></thead>
+          <tbody id="studentAttBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="emptyState" style="text-align:center;padding:60px;color:var(--text-secondary)">
+      <div style="font-size:3rem;margin-bottom:12px">📋</div>
+      <div style="font-size:1rem;font-weight:600;margin-bottom:6px">Select a subject and date</div>
+      <div style="font-size:0.85rem">to start marking attendance</div>
+    </div>
+  </div>
+</main>
+</div>
+
+<style>
+.att-btn {
+  padding: 6px 14px; border-radius: 6px; border: 1.5px solid;
+  cursor: pointer; font-size: 0.78rem; font-weight: 600;
+  transition: all 0.15s ease; background: none;
+}
+.att-present { border-color: var(--brand-success); color: var(--brand-success); }
+.att-present.active { background: var(--brand-success); color: white; }
+.att-absent  { border-color: var(--brand-danger);  color: var(--brand-danger); }
+.att-absent.active  { background: var(--brand-danger);  color: white; }
+.att-late    { border-color: var(--brand-warning); color: var(--brand-warning); }
+.att-late.active    { background: var(--brand-warning); color: white; }
+</style>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="teacher-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item active" href="teacher-attendance.html"><span class="nav-icon">📅</span><span class="nav-label">Mark Attendance</span></a>
+<a class="nav-item" href="teacher-marks.html"><span class="nav-icon">📝</span><span class="nav-label">Upload Marks</span></a>
+<a class="nav-item" href="teacher-timetable.html"><span class="nav-icon">🗓️</span><span class="nav-label">My Timetable</span></a>
+<a class="nav-item" href="teacher-students.html"><span class="nav-icon">🎓</span><span class="nav-label">My Students</span></a>
+<a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">T</div><div class="user-info"><div class="user-name" id="userNameSidebar">Teacher</div><div class="user-role" id="userRoleSidebar">teacher</div></div></div></div>`;
+
+let students = [];
+let attendance = {};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Set today's date
+  document.getElementById('dateSelect').value = new Date().toISOString().split('T')[0];
+
+  // Load subjects
+  const subRes = await SubjectsAPI.list();
+  if (subRes?.ok) {
+    (subRes.data?.data || []).forEach(s => {
+      document.getElementById('subjectSelect').innerHTML += `<option value="${s.id}">${s.name} (${s.code})</option>`;
+    });
+  }
+});
+
+async function loadStudentList() {
+  const subjectId = document.getElementById('subjectSelect').value;
+  const date      = document.getElementById('dateSelect').value;
+  if (!subjectId || !date) return;
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('studentListWrapper').style.display = 'block';
+
+  const res = await StudentsAPI.list({ limit: 100 });
+  students  = res?.data?.data || [];
+
+  // Initialize attendance as present
+  attendance = {};
+  students.forEach(s => { attendance[s.id] = { status: 'present', remarks: '' }; });
+
+  // Check existing attendance
+  const existing = await AttendanceAPI.list({ subjectId, date });
+  (existing?.data?.data || []).forEach(r => {
+    const student = students.find(s => s.studentId === r.rollNo);
+    if (student) attendance[student.id] = { status: r.status, remarks: r.remarks || '' };
+  });
+
+  renderStudentTable();
+  document.getElementById('attTitle').textContent = `Students (${students.length}) — ${new Date(date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`;
+}
+
+function renderStudentTable() {
+  const tbody = document.getElementById('studentAttBody');
+  tbody.innerHTML = students.map(s => {
+    const att = attendance[s.id] || { status: 'present', remarks: '' };
+    return `<tr id="row_${s.id}">
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${createAvatar(`${s.firstName} ${s.lastName}`)}
+          <div>
+            <div style="font-weight:500">${s.firstName} ${s.lastName}</div>
+            <div style="font-size:0.72rem;color:var(--text-tertiary)">${s.email}</div>
+          </div>
+        </div>
+      </td>
+      <td><span style="font-family:monospace;font-size:0.82rem">${s.studentId}</span></td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="att-btn att-present ${att.status==='present'?'active':''}" onclick="setStatus(${s.id},'present',this)">✅ Present</button>
+          <button class="att-btn att-absent  ${att.status==='absent' ?'active':''}" onclick="setStatus(${s.id},'absent',this)">❌ Absent</button>
+          <button class="att-btn att-late    ${att.status==='late'   ?'active':''}" onclick="setStatus(${s.id},'late',this)">⏰ Late</button>
+        </div>
+      </td>
+      <td><input class="form-input" style="padding:6px 10px;font-size:0.78rem;width:150px" placeholder="Remarks..." value="${att.remarks}" oninput="setRemarks(${s.id},this.value)"/></td>
+    </tr>`;
+  }).join('');
+  updateCounts();
+}
+
+function setStatus(studentId, status, btn) {
+  attendance[studentId].status = status;
+  // Update button UI
+  const row    = document.getElementById(`row_${studentId}`);
+  const btns   = row.querySelectorAll('.att-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateCounts();
+}
+
+function setRemarks(studentId, value) {
+  attendance[studentId].remarks = value;
+}
+
+function markAllPresent() {
+  students.forEach(s => { attendance[s.id].status = 'present'; });
+  renderStudentTable();
+  Toast.info('All students marked as present');
+}
+
+function updateCounts() {
+  const present = Object.values(attendance).filter(a => a.status === 'present').length;
+  const absent  = Object.values(attendance).filter(a => a.status === 'absent').length;
+  document.getElementById('presentCount').textContent = `Present: ${present}`;
+  document.getElementById('absentCount').textContent  = `Absent: ${absent}`;
+}
+
+async function saveAllAttendance() {
+  const subjectId = document.getElementById('subjectSelect').value;
+  const date      = document.getElementById('dateSelect').value;
+
+  if (!subjectId || !date) { Toast.error('Please select subject and date'); return; }
+  if (!students.length)    { Toast.error('No students loaded'); return; }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled    = true;
+  btn.textContent = 'Saving...';
+
+  let success = 0, failed = 0;
+  for (const s of students) {
+    const att = attendance[s.id] || { status: 'present', remarks: '' };
+    const res = await AttendanceAPI.mark({ subjectId, studentId: s.id, date, status: att.status, remarks: att.remarks });
+    if (res?.ok) success++; else failed++;
+  }
+
+  btn.disabled    = false;
+  btn.textContent = '💾 Save Attendance';
+
+  if (failed === 0) Toast.success(`Attendance saved for ${success} students!`);
+  else Toast.warning(`Saved: ${success}, Failed: ${failed}`);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Analytics — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">Analytics</div><div class="breadcrumb">System · Reports & Insights</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>Analytics & Reports</h1><p>Deep insights into academic performance and operations</p></div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="exportReport()">Export Report</button>
+      </div>
+    </div>
+
+    <!-- Student Analytics -->
+    <h3 style="font-family:var(--font-display);margin-bottom:16px;color:var(--text-secondary);font-size:0.85rem;text-transform:uppercase;letter-spacing:1px">Student Performance</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:28px">
+      <div class="card"><div class="card-title" style="margin-bottom:16px">Grade Distribution</div><canvas id="gradeChart" height="200"></canvas></div>
+      <div class="card"><div class="card-title" style="margin-bottom:16px">Gender Distribution</div><canvas id="genderChart" height="200"></canvas></div>
+      <div class="card"><div class="card-title" style="margin-bottom:16px">Semester Distribution</div><canvas id="semChart" height="200"></canvas></div>
+    </div>
+
+    <!-- Top Students -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px">
+      <div class="card">
+        <div class="card-header-row">
+          <div><div class="card-title">🏆 Top Performing Students</div></div>
+        </div>
+        <div id="topStudentsList"></div>
+      </div>
+      <div class="card">
+        <div class="card-header-row">
+          <div><div class="card-title" style="color:var(--brand-danger)">⚠ At-Risk Students</div></div>
+        </div>
+        <div id="atRiskList"></div>
+      </div>
+    </div>
+
+    <!-- Fee Analytics -->
+    <h3 style="font-family:var(--font-display);margin-bottom:16px;color:var(--text-secondary);font-size:0.85rem;text-transform:uppercase;letter-spacing:1px">Finance Analytics</h3>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:28px">
+      <div class="card"><div class="card-title" style="margin-bottom:16px">Monthly Fee Collection</div><canvas id="feeChart" height="120"></canvas></div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">Payment Status</div>
+        <canvas id="payChart" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Attendance Analytics -->
+    <h3 style="font-family:var(--font-display);margin-bottom:16px;color:var(--text-secondary);font-size:0.85rem;text-transform:uppercase;letter-spacing:1px">Attendance Analytics</h3>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+      <div class="card"><div class="card-title" style="margin-bottom:16px">Daily Attendance Trend</div><canvas id="attTrendChart" height="120"></canvas></div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">Low Attendance Students</div>
+        <div id="lowAttList"></div>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="admin-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item" href="students.html"><span class="nav-icon">🎓</span><span class="nav-label">Students</span></a>
+<a class="nav-item" href="teachers.html"><span class="nav-icon">👩‍🏫</span><span class="nav-label">Teachers</span></a>
+<a class="nav-item" href="attendance.html"><span class="nav-icon">📅</span><span class="nav-label">Attendance</span></a>
+<a class="nav-item" href="exams.html"><span class="nav-icon">📝</span><span class="nav-label">Examinations</span></a>
+<a class="nav-item" href="fees.html"><span class="nav-icon">💳</span><span class="nav-label">Fee Management</span></a>
+<a class="nav-item" href="library.html"><span class="nav-icon">📚</span><span class="nav-label">Library</span></a>
+<a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+<a class="nav-item active" href="analytics.html"><span class="nav-icon">📈</span><span class="nav-label">Analytics</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">A</div><div class="user-info"><div class="user-name" id="userNameSidebar">Admin</div><div class="user-role" id="userRoleSidebar">admin</div></div></div></div>`;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const [studRes, feeRes, attRes] = await Promise.all([
+    AnalyticsAPI.students(),
+    AnalyticsAPI.fees(),
+    AnalyticsAPI.attendance(),
+  ]);
+
+  const c = getChartDefaults();
+
+  if (studRes?.ok) {
+    const d = studRes.data?.data || {};
+
+    // Grade chart
+    const grades = d.gradeDistribution || [];
+    new Chart(document.getElementById('gradeChart'), {
+      type: 'bar',
+      data: { labels: grades.map(g => g.grade), datasets: [{ data: grades.map(g => g.count), backgroundColor: c.colors, borderRadius: 4 }] },
+      options: { ...buildBarChartOptions(), plugins: { legend: { display: false } } },
+    });
+
+    // Gender chart
+    const gender = d.genderDistribution || [];
+    new Chart(document.getElementById('genderChart'), {
+      type: 'doughnut',
+      data: { labels: gender.map(g => g.gender), datasets: [{ data: gender.map(g => g.count), backgroundColor: ['#6366f1','#ec4899','#06b6d4'], borderWidth: 0 }] },
+      options: buildDoughnutOptions(),
+    });
+
+    // Semester chart
+    const sem = d.semesterDistribution || [];
+    new Chart(document.getElementById('semChart'), {
+      type: 'bar',
+      data: { labels: sem.map(s => 'Sem ' + s.semester), datasets: [{ data: sem.map(s => s.count), backgroundColor: c.primaryColor, borderRadius: 4 }] },
+      options: { ...buildBarChartOptions(), plugins: { legend: { display: false } } },
+    });
+
+    // Top students
+    const top = d.topStudents || [];
+    document.getElementById('topStudentsList').innerHTML = top.map((s, i) => `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-subtle)">
+        <div style="width:28px;height:28px;border-radius:50%;background:${['#f59e0b','#9ca3af','#cd7c2f'][i] || 'var(--bg-elevated)'};display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:700;color:${i<3?'white':'var(--text-secondary)'}">${i+1}</div>
+        <div style="flex:1"><div style="font-weight:500;font-size:0.85rem">${s.name}</div><div style="font-size:0.72rem;color:var(--text-tertiary)">${s.student_id}</div></div>
+        <div style="text-align:right"><div style="font-weight:700;color:var(--brand-primary)">${s.gpa || '—'}</div><div style="font-size:0.72rem;color:var(--text-tertiary)">GPA</div></div>
+      </div>
+    `).join('') || '<p style="color:var(--text-secondary);font-size:0.85rem;padding:12px 0">No data available</p>';
+
+    // At-risk
+    const risk = d.atRiskStudents || [];
+    document.getElementById('atRiskList').innerHTML = risk.map(s => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle)">
+        <div><div style="font-weight:500;font-size:0.85rem">${s.name}</div><div style="font-size:0.72rem;color:var(--text-tertiary)">Att: ${s.attendance_percent}%</div></div>
+        <span class="badge ${s.risk_level === 'high' ? 'badge-danger' : 'badge-warning'}">${s.risk_level}</span>
+      </div>
+    `).join('') || '<p style="color:var(--brand-success);font-size:0.85rem;padding:12px 0">No at-risk students ✓</p>';
+  }
+
+  if (feeRes?.ok) {
+    const d = feeRes.data?.data || {};
+    const monthly = d.monthlyTrend || [];
+    new Chart(document.getElementById('feeChart'), {
+      type: 'line',
+      data: { labels: monthly.map(m => m.month), datasets: [{ label: 'Collected (₹)', data: monthly.map(m => m.collected), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.4, fill: true }] },
+      options: buildLineChartOptions('Amount (₹)'),
+    });
+
+    const status = d.statusDistribution || [];
+    new Chart(document.getElementById('payChart'), {
+      type: 'doughnut',
+      data: { labels: status.map(s => s.status), datasets: [{ data: status.map(s => s.count), backgroundColor: ['#10b981','#f59e0b','#ef4444','#3b82f6'], borderWidth: 0 }] },
+      options: buildDoughnutOptions(),
+    });
+  }
+
+  if (attRes?.ok) {
+    const d = attRes.data?.data || {};
+    const daily = d.dailyTrend || [];
+    new Chart(document.getElementById('attTrendChart'), {
+      type: 'line',
+      data: {
+        labels: daily.map(d => formatDate(d.date)),
+        datasets: [
+          { label: 'Present', data: daily.map(d => d.present), borderColor: '#10b981', tension: 0.4 },
+          { label: 'Absent',  data: daily.map(d => d.absent),  borderColor: '#ef4444', tension: 0.4 },
+        ]
+      },
+      options: buildLineChartOptions(),
+    });
+
+    const low = d.lowAttendance || [];
+    document.getElementById('lowAttList').innerHTML = low.slice(0,6).map(s => `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-subtle)">
+        <div><div style="font-size:0.82rem;font-weight:500">${s.student_name}</div><div style="font-size:0.72rem;color:var(--text-tertiary)">${s.subject_name}</div></div>
+        <span style="color:var(--brand-danger);font-weight:700;font-size:0.85rem">${s.attendance_percent}%</span>
+      </div>
+    `).join('') || '<p style="color:var(--brand-success);font-size:0.85rem">All students above 75% ✓</p>';
+  }
+});
+</script>
+</body>
+</html>

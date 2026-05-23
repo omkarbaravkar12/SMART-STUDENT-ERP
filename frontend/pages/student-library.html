@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Library — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">Library</div><div class="breadcrumb">Student Portal · Books & Resources</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>Library</h1><p>Search and borrow books from the library</p></div>
+    </div>
+
+    <!-- Search -->
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <input type="text" class="form-input" placeholder="🔍 Search books by title, author, ISBN..." id="searchInput" style="flex:1;min-width:200px" oninput="searchBooks()"/>
+      <select class="form-select" id="categoryFilter" onchange="searchBooks()" style="width:180px">
+        <option value="">All Categories</option>
+        <option value="Computer Science">Computer Science</option>
+        <option value="Software">Software</option>
+        <option value="Database">Database</option>
+        <option value="Mathematics">Mathematics</option>
+      </select>
+    </div>
+
+    <!-- Books Grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px" id="booksGrid">
+      <div class="skeleton" style="height:200px;border-radius:12px"></div>
+      <div class="skeleton" style="height:200px;border-radius:12px"></div>
+      <div class="skeleton" style="height:200px;border-radius:12px"></div>
+      <div class="skeleton" style="height:200px;border-radius:12px"></div>
+      <div class="skeleton" style="height:200px;border-radius:12px"></div>
+      <div class="skeleton" style="height:200px;border-radius:12px"></div>
+    </div>
+  </div>
+</main>
+</div>
+
+<style>
+.book-card {
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
+  border-radius: 14px; padding: 20px; transition: all 0.25s ease;
+  display: flex; flex-direction: column;
+}
+.book-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: rgba(99,102,241,0.3); }
+.book-cover { width: 100%; height: 100px; background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin-bottom: 14px; }
+.book-title  { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; line-height: 1.3; }
+.book-author { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 8px; }
+.book-meta   { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.book-avail  { font-size: 0.78rem; font-weight: 600; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+</style>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="student-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item" href="student-attendance.html"><span class="nav-icon">📅</span><span class="nav-label">My Attendance</span></a>
+<a class="nav-item" href="student-timetable.html"><span class="nav-icon">🗓️</span><span class="nav-label">Timetable</span></a>
+<a class="nav-item" href="student-results.html"><span class="nav-icon">📝</span><span class="nav-label">Exam Results</span></a>
+<a class="nav-item" href="student-fees.html"><span class="nav-icon">💳</span><span class="nav-label">My Fees</span></a>
+<a class="nav-item active" href="student-library.html"><span class="nav-icon">📚</span><span class="nav-label">Library</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">S</div><div class="user-info"><div class="user-name" id="userNameSidebar">Student</div><div class="user-role" id="userRoleSidebar">student</div></div></div></div>`;
+
+const bookEmojis = ['📘','📗','📙','📕','📓','📔'];
+
+document.addEventListener('DOMContentLoaded', () => searchBooks());
+
+let searchTimeout;
+function searchBooks() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(loadBooks, 300);
+}
+
+async function loadBooks() {
+  const q        = document.getElementById('searchInput').value;
+  const category = document.getElementById('categoryFilter').value;
+  const res = await LibraryAPI.books({ q, category });
+  const books = res?.data?.data || [];
+  const grid  = document.getElementById('booksGrid');
+
+  if (!books.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-secondary)"><div style="font-size:3rem">📭</div><div style="margin-top:12px">No books found</div></div>';
+    return;
+  }
+
+  grid.innerHTML = books.map((b, i) => `
+    <div class="book-card">
+      <div class="book-cover">${bookEmojis[i % bookEmojis.length]}</div>
+      <div class="book-title">${b.title}</div>
+      <div class="book-author">✍️ ${b.author}</div>
+      <div class="book-meta">
+        <span class="badge badge-info">${b.category || 'General'}</span>
+        ${b.isbn ? `<span class="badge badge-primary" style="font-family:monospace">${b.isbn}</span>` : ''}
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:8px">
+        ${b.publisher || ''} ${b.published_year ? '· ' + b.published_year : ''}
+      </div>
+      <div class="book-avail">
+        <span style="color:${b.available_copies > 0 ? 'var(--brand-success)' : 'var(--brand-danger)'};font-weight:600">
+          ${b.available_copies > 0 ? '✅ ' + b.available_copies + ' available' : '❌ Not available'}
+        </span>
+        <button class="btn btn-primary btn-sm"
+          onclick="requestBorrow(${b.id},'${b.title.replace(/'/g,"\\'")}',${b.available_copies})"
+          ${b.available_copies < 1 ? 'disabled' : ''}>
+          Borrow
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function requestBorrow(bookId, title, available) {
+  if (available < 1) { Toast.error('This book is not available'); return; }
+  const user = Auth.getUser();
+  if (!user) { Toast.error('Please login again'); return; }
+  if (confirm(`Borrow "${title}"?\n\nDue date: 14 days from today\nYour User ID: ${user.id}`)) {
+    LibraryAPI.borrow({ bookId, userId: user.id }).then(res => {
+      if (res?.ok) { Toast.success(`"${title}" borrowed! Return within 14 days.`); loadBooks(); }
+      else Toast.error(res?.data?.error || 'Failed to borrow book');
+    });
+  }
+}
+</script>
+</body>
+</html>

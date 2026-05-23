@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Notifications — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">Notifications</div><div class="breadcrumb">Communication · Announcements</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>Notifications</h1><p>Announcements, alerts and system messages</p></div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="openSendModal()">📢 Send Announcement</button>
+      </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="notifGrid">
+      <div class="skeleton" style="height:100px;border-radius:12px"></div>
+      <div class="skeleton" style="height:100px;border-radius:12px"></div>
+      <div class="skeleton" style="height:100px;border-radius:12px"></div>
+      <div class="skeleton" style="height:100px;border-radius:12px"></div>
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- Send Notification Modal -->
+<div id="sendModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span class="modal-title">Send Announcement</span><button class="modal-close" onclick="document.getElementById('sendModal').style.display='none'">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field form-full"><label class="form-label">Title *</label><input class="form-input" id="n_title" placeholder="Exam Schedule Released"/></div>
+        <div class="form-field form-full"><label class="form-label">Message *</label><textarea class="form-textarea" id="n_message" placeholder="Type your announcement here..."></textarea></div>
+        <div class="form-field"><label class="form-label">Type</label>
+          <select class="form-select" id="n_type">
+            <option value="announcement">Announcement</option>
+            <option value="exam_alert">Exam Alert</option>
+            <option value="fee_reminder">Fee Reminder</option>
+            <option value="event">Event</option>
+            <option value="system">System</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Target Role</label>
+          <select class="form-select" id="n_role">
+            <option value="">Everyone</option>
+            <option value="student">Students Only</option>
+            <option value="teacher">Teachers Only</option>
+            <option value="parent">Parents Only</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('sendModal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary" onclick="sendNotification()">Send Now</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="admin-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item" href="students.html"><span class="nav-icon">🎓</span><span class="nav-label">Students</span></a>
+<a class="nav-item" href="teachers.html"><span class="nav-icon">👩‍🏫</span><span class="nav-label">Teachers</span></a>
+<a class="nav-item" href="attendance.html"><span class="nav-icon">📅</span><span class="nav-label">Attendance</span></a>
+<a class="nav-item" href="exams.html"><span class="nav-icon">📝</span><span class="nav-label">Examinations</span></a>
+<a class="nav-item" href="fees.html"><span class="nav-icon">💳</span><span class="nav-label">Fee Management</span></a>
+<a class="nav-item" href="library.html"><span class="nav-icon">📚</span><span class="nav-label">Library</span></a>
+<a class="nav-item active" href="notifications.html"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">A</div><div class="user-info"><div class="user-name" id="userNameSidebar">Admin</div><div class="user-role" id="userRoleSidebar">admin</div></div></div></div>`;
+
+const typeIcons = { announcement:'📢', exam_alert:'📝', fee_reminder:'💳', event:'📅', system:'⚙️' };
+const typeColors = { announcement:'var(--brand-primary)', exam_alert:'var(--brand-warning)', fee_reminder:'var(--brand-success)', event:'var(--brand-info)', system:'var(--text-secondary)' };
+
+document.addEventListener('DOMContentLoaded', loadNotifications);
+
+async function loadNotifications() {
+  const res = await NotificationsAPI.list();
+  const grid = document.getElementById('notifGrid');
+  if (!res?.ok) { grid.innerHTML = '<p style="color:var(--text-secondary)">Failed to load notifications</p>'; return; }
+  const notifs = res.data?.data || [];
+  if (!notifs.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-secondary)">📭 No notifications yet</div>'; return; }
+  grid.innerHTML = notifs.map(n => `
+    <div style="background:var(--bg-surface);border:1px solid ${n.isRead ? 'var(--border-subtle)' : 'rgba(99,102,241,0.3)'};border-radius:12px;padding:20px;transition:all 0.2s ease;${n.isRead ? '' : 'box-shadow:0 0 0 1px rgba(99,102,241,0.1)'}">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <div style="font-size:1.5rem;flex-shrink:0">${typeIcons[n.type] || '🔔'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-weight:${n.isRead ? '400' : '700'};font-size:0.92rem">${n.title}</span>
+            ${!n.isRead ? '<span class="badge badge-primary">New</span>' : ''}
+          </div>
+          <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:8px;line-height:1.5">${n.message}</p>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span class="badge" style="background:rgba(99,102,241,0.1);color:${typeColors[n.type]}">${n.type?.replace('_',' ')}</span>
+            <span style="font-size:0.72rem;color:var(--text-tertiary)">${new Date(n.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openSendModal() { document.getElementById('sendModal').style.display = 'flex'; }
+
+async function sendNotification() {
+  const data = {
+    title:      document.getElementById('n_title').value.trim(),
+    message:    document.getElementById('n_message').value.trim(),
+    type:       document.getElementById('n_type').value,
+    targetRole: document.getElementById('n_role').value || null,
+    isBroadcast: true,
+  };
+  if (!data.title || !data.message) { Toast.error('Title and message required'); return; }
+  const res = await NotificationsAPI.create(data);
+  if (!res?.ok) { Toast.error('Failed to send notification'); return; }
+  Toast.success('Announcement sent to all users!');
+  document.getElementById('sendModal').style.display = 'none';
+  loadNotifications();
+}
+</script>
+</body>
+</html>

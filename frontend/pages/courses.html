@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Courses — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">Courses</div><div class="breadcrumb">Academic · Course Management</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>Course Management</h1><p>Manage degree programs, subjects and departments</p></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary" onclick="switchTab('subjects')">View Subjects</button>
+        <button class="btn btn-secondary" onclick="switchTab('departments')">Departments</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(99,102,241,0.15)">📚</div></div><div class="sc-value" id="st_courses">—</div><div class="sc-label">Total Courses</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(139,92,246,0.15)">📖</div></div><div class="sc-value" id="st_subjects">—</div><div class="sc-label">Total Subjects</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(6,182,212,0.15)">🏛️</div></div><div class="sc-value" id="st_depts">—</div><div class="sc-label">Departments</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(16,185,129,0.15)">🎓</div></div><div class="sc-value" id="st_students">—</div><div class="sc-label">Enrolled Students</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--border-subtle)">
+      <button class="tab-btn active" id="tab_courses" onclick="switchTab('courses')">Courses</button>
+      <button class="tab-btn" id="tab_subjects" onclick="switchTab('subjects')">Subjects</button>
+      <button class="tab-btn" id="tab_departments" onclick="switchTab('departments')">Departments</button>
+    </div>
+
+    <!-- Courses Panel -->
+    <div id="coursesPanel">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px" id="coursesGrid">
+        <div class="skeleton" style="height:160px;border-radius:12px"></div>
+        <div class="skeleton" style="height:160px;border-radius:12px"></div>
+        <div class="skeleton" style="height:160px;border-radius:12px"></div>
+        <div class="skeleton" style="height:160px;border-radius:12px"></div>
+      </div>
+    </div>
+
+    <!-- Subjects Panel -->
+    <div id="subjectsPanel" style="display:none">
+      <div class="table-wrapper">
+        <div class="table-toolbar"><span class="table-title" id="subjectCount">Subjects</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Code</th><th>Subject Name</th><th>Department</th><th>Credits</th><th>Theory Hrs</th><th>Lab Hrs</th><th>Type</th></tr></thead>
+            <tbody id="subjectsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Departments Panel -->
+    <div id="departmentsPanel" style="display:none">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px" id="deptsGrid"></div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<style>
+.tab-btn{padding:10px 20px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-secondary);cursor:pointer;font-family:var(--font-body);font-size:0.87rem;font-weight:500;transition:all 0.2s ease;margin-bottom:-1px;}
+.tab-btn.active,.tab-btn:hover{color:var(--brand-primary);border-bottom-color:var(--brand-primary);}
+.course-card {
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
+  border-radius: 14px; padding: 22px;
+  transition: all 0.25s ease; cursor: pointer;
+}
+.course-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: rgba(99,102,241,0.3); }
+.course-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 14px; }
+.course-code { font-family: monospace; font-size: 0.75rem; color: var(--brand-primary); font-weight: 600; background: rgba(99,102,241,0.1); padding: 2px 8px; border-radius: 4px; }
+.course-name { font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin: 10px 0 6px; }
+.course-meta { font-size: 0.78rem; color: var(--text-secondary); }
+.dept-card {
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
+  border-radius: 14px; padding: 22px; transition: all 0.2s ease;
+}
+.dept-card:hover { border-color: rgba(99,102,241,0.3); transform: translateY(-2px); }
+</style>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="admin-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item" href="students.html"><span class="nav-icon">🎓</span><span class="nav-label">Students</span></a>
+<a class="nav-item" href="teachers.html"><span class="nav-icon">👩‍🏫</span><span class="nav-label">Teachers</span></a>
+<a class="nav-item active" href="courses.html"><span class="nav-icon">📚</span><span class="nav-label">Courses</span></a>
+<a class="nav-item" href="attendance.html"><span class="nav-icon">📅</span><span class="nav-label">Attendance</span></a>
+<a class="nav-item" href="exams.html"><span class="nav-icon">📝</span><span class="nav-label">Examinations</span></a>
+<a class="nav-item" href="timetable.html"><span class="nav-icon">🗓️</span><span class="nav-label">Timetable</span></a>
+<a class="nav-item" href="fees.html"><span class="nav-icon">💳</span><span class="nav-label">Fee Management</span></a>
+<a class="nav-item" href="library.html"><span class="nav-icon">📚</span><span class="nav-label">Library</span></a>
+<a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+<a class="nav-item" href="analytics.html"><span class="nav-icon">📈</span><span class="nav-label">Analytics</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">A</div><div class="user-info"><div class="user-name" id="userNameSidebar">Admin</div><div class="user-role" id="userRoleSidebar">admin</div></div></div></div>`;
+
+const courseIcons = ['💻','📡','⚙️','📊','🔬','🏗️','📐','🎯'];
+const courseColors = ['rgba(99,102,241,0.15)','rgba(6,182,212,0.15)','rgba(245,158,11,0.15)','rgba(16,185,129,0.15)'];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const [courseRes, subRes, deptRes, studRes] = await Promise.all([
+    CoursesAPI.list(), SubjectsAPI.list(), DepartmentsAPI.list(), StudentsAPI.list({ limit: 1 })
+  ]);
+
+  // Stats
+  if (courseRes?.ok) document.getElementById('st_courses').textContent  = courseRes.data?.data?.length || 0;
+  if (subRes?.ok)    document.getElementById('st_subjects').textContent = subRes.data?.data?.length   || 0;
+  if (deptRes?.ok)   document.getElementById('st_depts').textContent    = deptRes.data?.data?.length  || 0;
+  if (studRes?.ok)   animateCounter(document.getElementById('st_students'), studRes.data?.meta?.total || 0);
+
+  // Courses grid
+  if (courseRes?.ok) {
+    const courses = courseRes.data?.data || [];
+    document.getElementById('coursesGrid').innerHTML = courses.map((c, i) => `
+      <div class="course-card">
+        <div class="course-icon" style="background:${courseColors[i % courseColors.length]}">${courseIcons[i % courseIcons.length]}</div>
+        <span class="course-code">${c.code}</span>
+        <div class="course-name">${c.name}</div>
+        <div class="course-meta">
+          <span>🏛️ ${c.department_name || '—'}</span> &nbsp;·&nbsp;
+          <span>⏱ ${c.duration_years} years</span> &nbsp;·&nbsp;
+          <span>📋 ${c.total_credits} credits</span>
+        </div>
+        <div style="margin-top:12px">
+          ${createStatusBadge(c.is_active ? 'active' : 'inactive')}
+        </div>
+      </div>
+    `).join('') || '<p style="color:var(--text-secondary)">No courses found</p>';
+  }
+
+  // Subjects table
+  if (subRes?.ok) {
+    const subjects = subRes.data?.data || [];
+    document.getElementById('subjectCount').textContent = `Subjects (${subjects.length})`;
+    document.getElementById('subjectsBody').innerHTML = subjects.map(s => `
+      <tr>
+        <td><span style="font-family:monospace;background:var(--bg-elevated);padding:2px 6px;border-radius:4px;font-size:0.78rem">${s.code}</span></td>
+        <td style="font-weight:500">${s.name}</td>
+        <td>${s.department_name || '—'}</td>
+        <td style="text-align:center"><span class="badge badge-primary">${s.credits}</span></td>
+        <td style="text-align:center">${s.theory_hours}h</td>
+        <td style="text-align:center">${s.lab_hours}h</td>
+        <td>${createStatusBadge(s.is_elective ? 'elective' : 'mandatory')}</td>
+      </tr>
+    `).join('') || renderEmptyRow(7);
+  }
+
+  // Departments grid
+  if (deptRes?.ok) {
+    const depts = deptRes.data?.data || [];
+    document.getElementById('deptsGrid').innerHTML = depts.map((d, i) => `
+      <div class="dept-card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <div style="width:44px;height:44px;border-radius:12px;background:${courseColors[i % courseColors.length]};display:flex;align-items:center;justify-content:center;font-size:1.3rem">${courseIcons[i % courseIcons.length]}</div>
+          <div>
+            <div style="font-weight:700;font-family:var(--font-display)">${d.code}</div>
+            <div style="font-size:0.75rem;color:var(--text-tertiary)">Est. ${d.established_year || '—'}</div>
+          </div>
+        </div>
+        <div style="font-size:0.9rem;font-weight:500;margin-bottom:12px">${d.name}</div>
+        <div style="display:flex;gap:16px;font-size:0.78rem;color:var(--text-secondary)">
+          <span>🎓 ${d.student_count || 0} Students</span>
+          <span>👩‍🏫 ${d.teacher_count || 0} Teachers</span>
+        </div>
+      </div>
+    `).join('') || '<p style="color:var(--text-secondary)">No departments found</p>';
+  }
+});
+
+function switchTab(tab) {
+  ['courses','subjects','departments'].forEach(t => {
+    const btn   = document.getElementById(`tab_${t}`);
+    const panel = document.getElementById(`${t}Panel`);
+    if (btn)   btn.classList.toggle('active', t === tab);
+    if (panel) panel.style.display = t === tab ? 'block' : 'none';
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Library — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">Library</div><div class="breadcrumb">Resources · Library Management</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>Library Management</h1><p>Manage books, borrowing and returns</p></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary" onclick="openBorrowModal()">📤 Borrow Book</button>
+        <button class="btn btn-primary" onclick="openAddBookModal()">+ Add Book</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(99,102,241,0.15)">📚</div></div><div class="sc-value" id="st_total">—</div><div class="sc-label">Total Books</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(16,185,129,0.15)">✅</div></div><div class="sc-value" id="st_available">—</div><div class="sc-label">Available</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(245,158,11,0.15)">📤</div></div><div class="sc-value" id="st_borrowed">—</div><div class="sc-label">Borrowed</div></div>
+      <div class="stat-card"><div class="sc-top"><div class="sc-icon" style="background:rgba(239,68,68,0.15)">⚠️</div></div><div class="sc-value" id="st_overdue">—</div><div class="sc-label">Overdue</div></div>
+    </div>
+
+    <!-- Search -->
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <input type="text" class="form-input" placeholder="🔍 Search by title, author, ISBN..." id="searchInput" style="flex:1" oninput="loadBooks()"/>
+      <select class="form-select" id="categoryFilter" onchange="loadBooks()" style="width:180px">
+        <option value="">All Categories</option>
+        <option value="Computer Science">Computer Science</option>
+        <option value="Software">Software</option>
+        <option value="Database">Database</option>
+        <option value="Mathematics">Mathematics</option>
+      </select>
+    </div>
+
+    <!-- Books Table -->
+    <div class="table-wrapper">
+      <div class="table-toolbar"><span class="table-title" id="bookCount">Books</span></div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>Title</th><th>Author</th><th>ISBN</th><th>Category</th><th>Total</th><th>Available</th><th>Shelf</th><th>Actions</th></tr></thead>
+          <tbody id="booksBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- Add Book Modal -->
+<div id="addBookModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span class="modal-title">Add New Book</span><button class="modal-close" onclick="document.getElementById('addBookModal').style.display='none'">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field form-full"><label class="form-label">Title *</label><input class="form-input" id="b_title" placeholder="Introduction to Algorithms"/></div>
+        <div class="form-field form-full"><label class="form-label">Author *</label><input class="form-input" id="b_author" placeholder="Cormen, Leiserson"/></div>
+        <div class="form-field"><label class="form-label">ISBN</label><input class="form-input" id="b_isbn" placeholder="978-0262033848"/></div>
+        <div class="form-field"><label class="form-label">Publisher</label><input class="form-input" id="b_publisher" placeholder="MIT Press"/></div>
+        <div class="form-field"><label class="form-label">Published Year</label><input class="form-input" type="number" id="b_year" placeholder="2022"/></div>
+        <div class="form-field"><label class="form-label">Category</label><input class="form-input" id="b_category" placeholder="Computer Science"/></div>
+        <div class="form-field"><label class="form-label">Total Copies</label><input class="form-input" type="number" id="b_copies" value="1"/></div>
+        <div class="form-field"><label class="form-label">Shelf Location</label><input class="form-input" id="b_shelf" placeholder="CS-A1"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('addBookModal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary" onclick="addBook()">Add Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- Borrow Modal -->
+<div id="borrowModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span class="modal-title">Borrow Book</span><button class="modal-close" onclick="document.getElementById('borrowModal').style.display='none'">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field form-full"><label class="form-label">Book ID</label><input class="form-input" id="br_bookId" placeholder="Enter book ID"/></div>
+        <div class="form-field form-full"><label class="form-label">User ID (Student/Teacher)</label><input class="form-input" id="br_userId" placeholder="Enter user UUID"/></div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-secondary);margin-top:12px">📅 Due date will be set to 14 days from today</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('borrowModal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary" onclick="borrowBook()">Confirm Borrow</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="admin-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item" href="students.html"><span class="nav-icon">🎓</span><span class="nav-label">Students</span></a>
+<a class="nav-item" href="teachers.html"><span class="nav-icon">👩‍🏫</span><span class="nav-label">Teachers</span></a>
+<a class="nav-item" href="attendance.html"><span class="nav-icon">📅</span><span class="nav-label">Attendance</span></a>
+<a class="nav-item" href="exams.html"><span class="nav-icon">📝</span><span class="nav-label">Examinations</span></a>
+<a class="nav-item" href="fees.html"><span class="nav-icon">💳</span><span class="nav-label">Fee Management</span></a>
+<a class="nav-item active" href="library.html"><span class="nav-icon">📚</span><span class="nav-label">Library</span></a>
+<a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">A</div><div class="user-info"><div class="user-name" id="userNameSidebar">Admin</div><div class="user-role" id="userRoleSidebar">admin</div></div></div></div>`;
+
+document.addEventListener('DOMContentLoaded', () => loadBooks());
+
+async function loadBooks() {
+  const tbody = document.getElementById('booksBody');
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-tertiary)">Loading...</td></tr>`;
+  const q        = document.getElementById('searchInput').value;
+  const category = document.getElementById('categoryFilter').value;
+  const res = await LibraryAPI.books({ q, category });
+  if (!res?.ok) { tbody.innerHTML = renderEmptyRow(8, 'Failed to load books'); return; }
+  const books = res.data?.data || [];
+  document.getElementById('bookCount').textContent = `Books (${books.length})`;
+
+  let total = 0, available = 0, borrowed = 0;
+  books.forEach(b => { total += b.total_copies || 0; available += b.available_copies || 0; borrowed += (b.total_copies - b.available_copies) || 0; });
+  document.getElementById('st_total').textContent     = total;
+  document.getElementById('st_available').textContent = available;
+  document.getElementById('st_borrowed').textContent  = borrowed;
+  document.getElementById('st_overdue').textContent   = '—';
+
+  if (!books.length) { tbody.innerHTML = renderEmptyRow(8); return; }
+  tbody.innerHTML = books.map(b => `
+    <tr>
+      <td><div style="font-weight:500">${b.title}</div><div style="font-size:0.72rem;color:var(--text-tertiary)">${b.publisher || ''} ${b.published_year || ''}</div></td>
+      <td style="font-size:0.85rem">${b.author}</td>
+      <td><span style="font-family:monospace;font-size:0.75rem">${b.isbn || '—'}</span></td>
+      <td><span class="badge badge-info">${b.category || '—'}</span></td>
+      <td style="text-align:center">${b.total_copies}</td>
+      <td style="text-align:center"><span style="color:${b.available_copies > 0 ? 'var(--brand-success)' : 'var(--brand-danger)'};font-weight:600">${b.available_copies}</span></td>
+      <td style="font-size:0.82rem">${b.location_shelf || '—'}</td>
+      <td>
+        <button class="btn btn-primary btn-sm" onclick="quickBorrow(${b.id})" ${b.available_copies < 1 ? 'disabled' : ''}>Borrow</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openAddBookModal() { document.getElementById('addBookModal').style.display = 'flex'; }
+function openBorrowModal()  { document.getElementById('borrowModal').style.display  = 'flex'; }
+function quickBorrow(bookId){ document.getElementById('br_bookId').value = bookId; openBorrowModal(); }
+
+async function addBook() {
+  const data = {
+    title: document.getElementById('b_title').value,
+    author: document.getElementById('b_author').value,
+    isbn: document.getElementById('b_isbn').value,
+    publisher: document.getElementById('b_publisher').value,
+    publishedYear: document.getElementById('b_year').value,
+    category: document.getElementById('b_category').value,
+    totalCopies: document.getElementById('b_copies').value,
+    shelf: document.getElementById('b_shelf').value,
+  };
+  if (!data.title || !data.author) { Toast.error('Title and author required'); return; }
+  const res = await LibraryAPI.addBook(data);
+  if (!res?.ok) { Toast.error('Failed to add book'); return; }
+  Toast.success('Book added to library!');
+  document.getElementById('addBookModal').style.display = 'none';
+  loadBooks();
+}
+
+async function borrowBook() {
+  const data = { bookId: document.getElementById('br_bookId').value, userId: document.getElementById('br_userId').value };
+  if (!data.bookId || !data.userId) { Toast.error('Book ID and User ID required'); return; }
+  const res = await LibraryAPI.borrow(data);
+  if (!res?.ok) { Toast.error('Failed to borrow book'); return; }
+  Toast.success('Book borrowed! Due in 14 days.');
+  document.getElementById('borrowModal').style.display = 'none';
+  loadBooks();
+}
+</script>
+</body>
+</html>

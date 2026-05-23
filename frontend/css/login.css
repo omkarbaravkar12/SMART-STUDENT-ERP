@@ -1,0 +1,267 @@
+/* =========================================================
+   Smart Student ERP — Login Page Styles
+   ========================================================= */
+@import url('variables.css');
+
+/* ── Background ── */
+.bg-orbs {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.orb {
+  position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35;
+  animation: orb-float 12s ease-in-out infinite alternate;
+}
+.orb-1 {
+  width: 500px; height: 500px; background: radial-gradient(circle, #6366f1, transparent);
+  top: -100px; left: -100px; animation-duration: 14s;
+}
+.orb-2 {
+  width: 400px; height: 400px; background: radial-gradient(circle, #8b5cf6, transparent);
+  bottom: -80px; right: -80px; animation-duration: 18s; animation-delay: -5s;
+}
+.orb-3 {
+  width: 300px; height: 300px; background: radial-gradient(circle, #06b6d4, transparent);
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  animation-duration: 22s; animation-delay: -9s;
+}
+@keyframes orb-float {
+  0%  { transform: translate(0,0) scale(1); }
+  100%{ transform: translate(40px, 30px) scale(1.1); }
+}
+
+.grid-overlay {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── Layout ── */
+.login-wrapper {
+  position: relative; z-index: 1;
+  min-height: 100vh; display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media(max-width: 900px) {
+  .login-wrapper { grid-template-columns: 1fr; }
+  .brand-panel   { display: none; }
+}
+
+/* ── Brand Panel ── */
+.brand-panel {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 60px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.08) 100%);
+  border-right: 1px solid var(--border-subtle);
+}
+
+.brand-logo {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 56px;
+}
+.logo-icon svg { width: 56px; height: 56px; filter: drop-shadow(0 4px 16px rgba(99,102,241,0.4)); }
+.brand-text h1 {
+  font-family: var(--font-display); font-size: 1.9rem; font-weight: 800;
+  background: var(--gradient-primary); -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; background-clip: text; line-height: 1;
+}
+.brand-text span { font-size: 0.82rem; color: var(--text-secondary); letter-spacing: 0.5px; }
+
+.brand-features { display: flex; flex-direction: column; gap: 16px; margin-bottom: 56px; }
+.feature-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  background: var(--glass-bg); backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem; color: var(--text-secondary);
+  transition: var(--transition-normal);
+  animation: fade-in-left 0.5s ease forwards;
+  opacity: 0;
+}
+.feature-item:nth-child(1) { animation-delay: 0.1s; }
+.feature-item:nth-child(2) { animation-delay: 0.2s; }
+.feature-item:nth-child(3) { animation-delay: 0.3s; }
+.feature-item:nth-child(4) { animation-delay: 0.4s; }
+.feature-item:nth-child(5) { animation-delay: 0.5s; }
+.feature-item:hover {
+  border-color: rgba(99,102,241,0.3);
+  background: rgba(99,102,241,0.08);
+  color: var(--text-primary);
+  transform: translateX(4px);
+}
+.feat-icon { font-size: 1.1rem; }
+@keyframes fade-in-left {
+  from { opacity:0; transform: translateX(-20px); }
+  to   { opacity:1; transform: translateX(0); }
+}
+
+.brand-stats {
+  display: flex; gap: 24px;
+}
+.stat { text-align: center; }
+.stat-num {
+  display: block; font-family: var(--font-display); font-size: 2rem; font-weight: 800;
+  background: var(--gradient-primary); -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; background-clip: text;
+  line-height: 1;
+}
+.stat-label { font-size: 0.75rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; }
+
+/* ── Login Panel ── */
+.login-panel {
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 40px; min-height: 100vh;
+}
+
+.login-card {
+  width: 100%; max-width: 420px;
+  background: var(--glass-bg); backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  box-shadow: var(--shadow-xl), inset 0 1px 0 rgba(255,255,255,0.05);
+  animation: card-rise 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  opacity: 0; transform: translateY(30px);
+}
+@keyframes card-rise {
+  to { opacity:1; transform: translateY(0); }
+}
+
+.card-header { margin-bottom: 32px; }
+.card-header h2 {
+  font-family: var(--font-display); font-size: 1.7rem; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 6px;
+}
+.card-header p { font-size: 0.9rem; color: var(--text-secondary); }
+
+/* ── Alert ── */
+.alert {
+  padding: 12px 16px; border-radius: var(--radius-md);
+  font-size: 0.85rem; margin-bottom: 20px;
+  border: 1px solid;
+}
+.alert-error { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
+.alert-success { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); color: #6ee7b7; }
+
+/* ── Form ── */
+.login-form { display: flex; flex-direction: column; gap: 20px; }
+
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-group label {
+  font-size: 0.82rem; font-weight: 500; color: var(--text-secondary);
+  display: flex; justify-content: space-between; align-items: center;
+  letter-spacing: 0.3px;
+}
+.forgot-link { font-size: 0.78rem; color: var(--brand-primary); }
+.forgot-link:hover { text-decoration: underline; }
+
+.input-wrapper {
+  position: relative; display: flex; align-items: center;
+}
+.input-icon {
+  position: absolute; left: 14px; width: 16px; height: 16px;
+  color: var(--text-tertiary); pointer-events: none; transition: var(--transition-fast);
+}
+.input-wrapper input {
+  width: 100%; padding: 12px 14px 12px 42px;
+  background: var(--bg-elevated); color: var(--text-primary);
+  border: 1px solid var(--border-normal);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body); font-size: 0.9rem;
+  transition: var(--transition-normal); outline: none;
+}
+.input-wrapper input::placeholder { color: var(--text-tertiary); }
+.input-wrapper input:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+.input-wrapper input:focus + .input-icon,
+.input-wrapper .input-icon:has(~ input:focus) { color: var(--brand-primary); }
+.input-wrapper:focus-within .input-icon { color: var(--brand-primary); }
+
+.toggle-pass {
+  position: absolute; right: 12px; background: none; border: none;
+  color: var(--text-tertiary); width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+}
+.toggle-pass:hover { color: var(--text-primary); background: var(--bg-hover); }
+.toggle-pass svg { width: 16px; height: 16px; }
+
+/* ── Checkbox ── */
+.form-options { display: flex; align-items: center; justify-content: space-between; }
+.checkbox-label {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 0.82rem; color: var(--text-secondary); user-select: none;
+}
+.checkbox-label input { display: none; }
+.checkmark {
+  width: 16px; height: 16px; border: 1.5px solid var(--border-normal);
+  border-radius: 4px; position: relative; transition: var(--transition-fast);
+  flex-shrink: 0;
+}
+.checkbox-label input:checked ~ .checkmark {
+  background: var(--brand-primary); border-color: var(--brand-primary);
+}
+.checkbox-label input:checked ~ .checkmark::after {
+  content: '';
+  position: absolute; top: 2px; left: 5px;
+  width: 4px; height: 7px;
+  border: 2px solid white; border-top: 0; border-left: 0;
+  transform: rotate(45deg);
+}
+
+/* ── Login Button ── */
+.btn-login {
+  width: 100%; padding: 13px;
+  background: var(--gradient-primary);
+  color: white; border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: var(--transition-normal);
+  position: relative; overflow: hidden;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-login::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+  opacity: 0; transition: var(--transition-fast);
+}
+.btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(99,102,241,0.45); }
+.btn-login:hover::before { opacity: 1; }
+.btn-login:active { transform: translateY(1px); }
+.btn-login:disabled { opacity: 0.6; pointer-events: none; }
+
+.spinner {
+  width: 18px; height: 18px;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Demo Accounts ── */
+.demo-accounts { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border-subtle); }
+.demo-title { font-size: 0.78rem; color: var(--text-tertiary); margin-bottom: 12px; text-align: center; }
+.demo-title code { font-size: 0.78rem; color: var(--brand-primary); }
+.demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.demo-btn {
+  padding: 8px 12px; font-size: 0.78rem;
+  background: var(--bg-elevated); color: var(--text-secondary);
+  border: 1px solid var(--border-normal); border-radius: var(--radius-md);
+  transition: var(--transition-fast); text-align: left;
+}
+.demo-btn:hover { border-color: var(--brand-primary); color: var(--brand-primary); background: rgba(99,102,241,0.06); }
+
+/* ── Theme Toggle ── */
+.theme-toggle-wrap { margin-top: 24px; }
+.theme-toggle {
+  width: 40px; height: 40px; border-radius: var(--radius-full);
+  background: var(--bg-elevated); border: 1px solid var(--border-normal);
+  color: var(--text-secondary); display: flex; align-items: center; justify-content: center;
+  transition: var(--transition-normal);
+}
+.theme-toggle:hover { border-color: var(--brand-primary); color: var(--brand-primary); transform: rotate(20deg); }
+.theme-toggle svg { width: 18px; height: 18px; }

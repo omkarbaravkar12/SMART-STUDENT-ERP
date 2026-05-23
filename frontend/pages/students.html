@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Students — Smart ERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+
+  <!-- Sidebar injected by JS -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <header class="top-header">
+    <div class="header-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
+      </button>
+      <div><div class="page-title">Students</div><div class="breadcrumb">Academic · Student Management</div></div>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" onclick="toggleTheme()">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="content-inner">
+      <div class="page-header">
+        <div>
+          <h1>Student Management</h1>
+          <p>Manage all enrolled students, profiles, and academic records</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" onclick="exportStudents()">Export CSV</button>
+          <button class="btn btn-primary" onclick="openAddStudentModal()">+ Add Student</button>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px" id="studentStats">
+        <div class="stat-card skeleton" style="height:100px"></div>
+        <div class="stat-card skeleton" style="height:100px"></div>
+        <div class="stat-card skeleton" style="height:100px"></div>
+        <div class="stat-card skeleton" style="height:100px"></div>
+      </div>
+
+      <!-- Filters -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <input type="text" class="form-input" placeholder="🔍 Search name, ID, email..." id="searchInput" style="flex:1;min-width:200px" oninput="filterStudents()"/>
+        <select class="form-select" id="deptFilter" onchange="filterStudents()" style="width:180px">
+          <option value="">All Departments</option>
+        </select>
+        <select class="form-select" id="courseFilter" onchange="filterStudents()" style="width:180px">
+          <option value="">All Courses</option>
+        </select>
+        <select class="form-select" id="semFilter" onchange="filterStudents()" style="width:140px">
+          <option value="">All Semesters</option>
+          <option value="1">Semester 1</option>
+          <option value="2">Semester 2</option>
+          <option value="3">Semester 3</option>
+          <option value="4">Semester 4</option>
+          <option value="5">Semester 5</option>
+          <option value="6">Semester 6</option>
+          <option value="7">Semester 7</option>
+          <option value="8">Semester 8</option>
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrapper">
+        <div class="table-toolbar">
+          <span class="table-title" id="tableCount">Students</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="setView('table')" id="btnTable">☰ Table</button>
+            <button class="btn btn-secondary btn-sm" onclick="setView('card')" id="btnCard">⊞ Cards</button>
+          </div>
+        </div>
+
+        <!-- Table view -->
+        <div id="tableView" style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr>
+              <th><input type="checkbox" onchange="selectAll(this)"/></th>
+              <th class="sortable" onclick="sortBy('name')">Student ↕</th>
+              <th class="sortable" onclick="sortBy('id')">ID ↕</th>
+              <th>Department</th>
+              <th>Course</th>
+              <th>Semester</th>
+              <th>Attendance</th>
+              <th>GPA</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr></thead>
+            <tbody id="studentsBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Card view -->
+        <div id="cardView" style="display:none;padding:20px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px" id="studentsCards"></div>
+        </div>
+
+        <div id="paginationContainer"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Student Modal -->
+<div id="addStudentModal" class="modal-overlay" style="display:none" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Add New Student</span>
+      <button class="modal-close" onclick="document.getElementById('addStudentModal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="form-label">First Name *</label><input class="form-input" id="f_firstName" placeholder="Amit"/></div>
+        <div class="form-field"><label class="form-label">Last Name *</label><input class="form-input" id="f_lastName" placeholder="Kumar"/></div>
+        <div class="form-field form-full"><label class="form-label">Email Address *</label><input class="form-input" id="f_email" type="email" placeholder="student@erp.edu"/></div>
+        <div class="form-field"><label class="form-label">Phone</label><input class="form-input" id="f_phone" placeholder="9800000000"/></div>
+        <div class="form-field"><label class="form-label">Date of Birth</label><input class="form-input" id="f_dob" type="date"/></div>
+        <div class="form-field"><label class="form-label">Gender</label>
+          <select class="form-select" id="f_gender">
+            <option value="">Select</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Blood Group</label><input class="form-input" id="f_blood" placeholder="O+"/></div>
+        <div class="form-field"><label class="form-label">Course *</label>
+          <select class="form-select" id="f_course"><option value="">Select Course</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Department</label>
+          <select class="form-select" id="f_dept"><option value="">Select Department</option></select>
+        </div>
+        <div class="form-field form-full"><label class="form-label">Address</label><textarea class="form-textarea" id="f_address" placeholder="Street address"></textarea></div>
+        <div class="form-field"><label class="form-label">City</label><input class="form-input" id="f_city" placeholder="Mumbai"/></div>
+        <div class="form-field"><label class="form-label">State</label><input class="form-input" id="f_state" placeholder="Maharashtra"/></div>
+      </div>
+      <div style="margin-top:12px;padding:12px;background:var(--bg-elevated);border-radius:var(--radius-md)">
+        <div style="font-size:0.78rem;color:var(--text-secondary)">🔒 Default password will be set to <code style="color:var(--brand-primary)">Password@123</code>. Student must change it on first login.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('addStudentModal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStudent()" id="saveBtn">Save Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- Student Detail Modal -->
+<div id="studentDetailModal" class="modal-overlay" style="display:none" onclick="closeModal(event)">
+  <div class="modal" style="max-width:700px" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Student Profile</span>
+      <button class="modal-close" onclick="document.getElementById('studentDetailModal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body" id="studentDetailContent">Loading...</div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script src="../js/students.js"></script>
+</body>
+</html>

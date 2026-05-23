@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Results — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">Exam Results</div><div class="breadcrumb">Student Portal · Academic Results</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>My Exam Results</h1><p>View grades, marks and GPA</p></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary" onclick="Toast.info('Transcript download coming soon!')">Download Transcript</button>
+      </div>
+    </div>
+
+    <!-- GPA Banner -->
+    <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:16px;padding:28px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px">
+      <div>
+        <div style="color:rgba(255,255,255,0.8);font-size:0.82rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Current GPA</div>
+        <div style="font-family:var(--font-display);font-size:3rem;font-weight:800;color:white;line-height:1" id="gpaDisplay">—</div>
+        <div style="color:rgba(255,255,255,0.7);font-size:0.85rem;margin-top:6px" id="creditsDisplay">— credits completed</div>
+      </div>
+      <div style="display:flex;gap:24px">
+        <div style="text-align:center;color:white">
+          <div style="font-size:1.5rem;font-weight:800;font-family:var(--font-display)" id="totalExams">—</div>
+          <div style="font-size:0.72rem;opacity:0.8">Total Exams</div>
+        </div>
+        <div style="text-align:center;color:white">
+          <div style="font-size:1.5rem;font-weight:800;font-family:var(--font-display)" id="passCount">—</div>
+          <div style="font-size:0.72rem;opacity:0.8">Passed</div>
+        </div>
+        <div style="text-align:center;color:white">
+          <div style="font-size:1.5rem;font-weight:800;font-family:var(--font-display)" id="bestGrade">—</div>
+          <div style="font-size:0.72rem;opacity:0.8">Best Grade</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart + Grade breakdown -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">Performance by Subject</div>
+        <canvas id="perfChart" height="140"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">Grade Distribution</div>
+        <canvas id="gradeChart" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="table-wrapper">
+      <div class="table-toolbar">
+        <span class="table-title">All Results</span>
+        <select class="form-select" id="typeFilter" onchange="filterResults()" style="width:150px;font-size:0.82rem;padding:6px 10px">
+          <option value="">All Types</option>
+          <option value="midterm">Midterm</option>
+          <option value="final">Final</option>
+          <option value="quiz">Quiz</option>
+          <option value="assignment">Assignment</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>Exam</th><th>Subject</th><th>Type</th><th>Date</th><th>Marks</th><th>Percentage</th><th>Grade</th><th>Points</th></tr></thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="student-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item" href="student-attendance.html"><span class="nav-icon">📅</span><span class="nav-label">My Attendance</span></a>
+<a class="nav-item" href="student-timetable.html"><span class="nav-icon">🗓️</span><span class="nav-label">Timetable</span></a>
+<a class="nav-item active" href="student-results.html"><span class="nav-icon">📝</span><span class="nav-label">Exam Results</span></a>
+<a class="nav-item" href="student-fees.html"><span class="nav-icon">💳</span><span class="nav-label">My Fees</span></a>
+<a class="nav-item" href="student-library.html"><span class="nav-icon">📚</span><span class="nav-label">Library</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">S</div><div class="user-info"><div class="user-name" id="userNameSidebar">Student</div><div class="user-role" id="userRoleSidebar">student</div></div></div></div>`;
+
+let allResults = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const studRes = await StudentsAPI.list({ limit: 1 });
+  const student = studRes?.data?.data?.[0];
+  if (!student) { Toast.error('Could not load profile'); return; }
+
+  const res = await StudentsAPI.results(student.id, {});
+  const data = res?.data?.data || {};
+  allResults  = data.results || [];
+
+  // GPA Banner
+  document.getElementById('gpaDisplay').textContent     = data.gpa || '0.00';
+  document.getElementById('creditsDisplay').textContent = `${data.totalCredits || 0} credits completed`;
+  document.getElementById('totalExams').textContent     = allResults.length;
+  document.getElementById('passCount').textContent      = allResults.filter(r => r.grade && r.grade !== 'F' && !r.isAbsent).length;
+
+  const grades = allResults.map(r => r.grade).filter(Boolean);
+  const gradeOrder = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','F'];
+  const bestGrade  = grades.sort((a,b) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b))[0];
+  document.getElementById('bestGrade').textContent = bestGrade || '—';
+
+  renderTable(allResults);
+  renderCharts(allResults);
+});
+
+function renderTable(results) {
+  const tbody = document.getElementById('resultsBody');
+  if (!results.length) { tbody.innerHTML = renderEmptyRow(8, 'No results available yet'); return; }
+  tbody.innerHTML = results.map(r => {
+    const pct = r.totalMarks ? Math.round((r.marksObtained / r.totalMarks) * 100) : 0;
+    const gradeColor = r.grade === 'F' ? 'var(--brand-danger)' : r.grade?.startsWith('A') ? 'var(--brand-success)' : 'var(--brand-primary)';
+    return `<tr>
+      <td style="font-weight:500">${r.examName || r.exam_name}</td>
+      <td style="font-size:0.82rem">${r.subjectName || r.subject_name}</td>
+      <td><span class="badge badge-info">${r.examType || r.exam_type}</span></td>
+      <td>${formatDate(r.examDate || r.exam_date)}</td>
+      <td>${r.isAbsent ? '<span style="color:var(--brand-danger)">Absent</span>' : `${r.marksObtained}/${r.totalMarks}`}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="progress-bar" style="width:60px"><div class="progress-fill" style="width:${pct}%;background:${pct>=40?'var(--brand-success)':'var(--brand-danger)'}"></div></div>
+          <span style="font-size:0.78rem">${r.isAbsent ? '—' : pct + '%'}</span>
+        </div>
+      </td>
+      <td><span style="font-weight:800;font-size:1rem;color:${gradeColor}">${r.grade || '—'}</span></td>
+      <td style="font-weight:600;color:var(--brand-primary)">${r.gradePoints || r.grade_points || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterResults() {
+  const type = document.getElementById('typeFilter').value;
+  const filtered = type ? allResults.filter(r => (r.examType || r.exam_type) === type) : allResults;
+  renderTable(filtered);
+}
+
+function renderCharts(results) {
+  const c = getChartDefaults();
+
+  // Performance chart
+  const bySubject = {};
+  results.forEach(r => {
+    const name = r.subjectName || r.subject_name;
+    if (!bySubject[name]) bySubject[name] = { total: 0, obtained: 0 };
+    if (!r.isAbsent && r.marksObtained) {
+      bySubject[name].obtained += Number(r.marksObtained);
+      bySubject[name].total    += Number(r.totalMarks || 100);
+    }
+  });
+  const subNames = Object.keys(bySubject);
+  const subPcts  = subNames.map(s => bySubject[s].total ? Math.round(bySubject[s].obtained / bySubject[s].total * 100) : 0);
+
+  if (subNames.length) {
+    new Chart(document.getElementById('perfChart'), {
+      type: 'bar',
+      data: { labels: subNames.map(s => s.length > 15 ? s.substring(0,15)+'...' : s), datasets: [{ data: subPcts, backgroundColor: subPcts.map(p => p >= 75 ? '#10b981' : p >= 40 ? '#f59e0b' : '#ef4444'), borderRadius: 6 }] },
+      options: { ...buildBarChartOptions(), plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100 } } }
+    });
+  }
+
+  // Grade distribution
+  const gradeCounts = {};
+  results.forEach(r => { if (r.grade) gradeCounts[r.grade] = (gradeCounts[r.grade] || 0) + 1; });
+  const gradeLabels = Object.keys(gradeCounts);
+  if (gradeLabels.length) {
+    new Chart(document.getElementById('gradeChart'), {
+      type: 'doughnut',
+      data: { labels: gradeLabels, datasets: [{ data: Object.values(gradeCounts), backgroundColor: c.colors, borderWidth: 0 }] },
+      options: buildDoughnutOptions()
+    });
+  }
+}
+</script>
+</body>
+</html>

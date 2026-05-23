@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Fees — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">My Fees</div><div class="breadcrumb">Student Portal · Fee Payments</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>My Fees</h1><p>View fee details, payment history and invoices</p></div>
+    </div>
+
+    <!-- Fee Summary Banner -->
+    <div id="feeBanner" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+      <div class="skeleton" style="height:110px;border-radius:12px"></div>
+      <div class="skeleton" style="height:110px;border-radius:12px"></div>
+      <div class="skeleton" style="height:110px;border-radius:12px"></div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--border-subtle)">
+      <button class="tab-btn active" id="tab_payments" onclick="switchTab('payments')">Payment History</button>
+      <button class="tab-btn" id="tab_invoices" onclick="switchTab('invoices')">Invoices</button>
+    </div>
+
+    <!-- Payments Panel -->
+    <div id="paymentsPanel">
+      <div class="table-wrapper">
+        <div class="table-toolbar"><span class="table-title">Payment Records</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Payment Ref</th><th>Amount Due</th><th>Amount Paid</th><th>Due Date</th><th>Payment Date</th><th>Method</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="paymentsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoices Panel -->
+    <div id="invoicesPanel" style="display:none">
+      <div class="table-wrapper">
+        <div class="table-toolbar"><span class="table-title">My Invoices</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Invoice #</th><th>Date</th><th>Amount</th><th>Method</th><th>Action</th></tr></thead>
+            <tbody id="invoicesBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<style>
+.tab-btn{padding:10px 20px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-secondary);cursor:pointer;font-family:var(--font-body);font-size:0.87rem;font-weight:500;transition:all 0.2s ease;margin-bottom:-1px;}
+.tab-btn.active,.tab-btn:hover{color:var(--brand-primary);border-bottom-color:var(--brand-primary);}
+.fee-banner-card{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:12px;padding:20px;}
+</style>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="student-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item" href="student-attendance.html"><span class="nav-icon">📅</span><span class="nav-label">My Attendance</span></a>
+<a class="nav-item" href="student-timetable.html"><span class="nav-icon">🗓️</span><span class="nav-label">Timetable</span></a>
+<a class="nav-item" href="student-results.html"><span class="nav-icon">📝</span><span class="nav-label">Exam Results</span></a>
+<a class="nav-item active" href="student-fees.html"><span class="nav-icon">💳</span><span class="nav-label">My Fees</span></a>
+<a class="nav-item" href="student-library.html"><span class="nav-icon">📚</span><span class="nav-label">Library</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">S</div><div class="user-info"><div class="user-name" id="userNameSidebar">Student</div><div class="user-role" id="userRoleSidebar">student</div></div></div></div>`;
+
+let myStudentId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const studRes = await StudentsAPI.list({ limit: 1 });
+  const student = studRes?.data?.data?.[0];
+  if (!student) { Toast.error('Could not load profile'); return; }
+  myStudentId = student.id;
+  loadPayments();
+});
+
+async function loadPayments() {
+  const res = await FeesAPI.payments({ studentId: myStudentId });
+  const payments = res?.data?.data || [];
+
+  // Banner
+  const totalDue  = payments.reduce((a,p) => a + Number(p.amount_due || 0), 0);
+  const totalPaid = payments.reduce((a,p) => a + Number(p.amount_paid || 0), 0);
+  const pending   = payments.filter(p => p.payment_status === 'pending' || p.payment_status === 'partial').length;
+
+  document.getElementById('feeBanner').innerHTML = `
+    <div class="fee-banner-card">
+      <div style="font-size:0.75rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Total Due</div>
+      <div style="font-family:var(--font-display);font-size:1.6rem;font-weight:800;color:var(--text-primary)">${formatCurrency(totalDue)}</div>
+    </div>
+    <div class="fee-banner-card">
+      <div style="font-size:0.75rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Total Paid</div>
+      <div style="font-family:var(--font-display);font-size:1.6rem;font-weight:800;color:var(--brand-success)">${formatCurrency(totalPaid)}</div>
+    </div>
+    <div class="fee-banner-card" style="border-color:${pending>0?'rgba(239,68,68,0.3)':'rgba(16,185,129,0.3)'}">
+      <div style="font-size:0.75rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Outstanding</div>
+      <div style="font-family:var(--font-display);font-size:1.6rem;font-weight:800;color:${pending>0?'var(--brand-danger)':'var(--brand-success)'}">${formatCurrency(totalDue - totalPaid)}</div>
+      <div style="font-size:0.75rem;margin-top:4px;color:${pending>0?'var(--brand-danger)':'var(--brand-success)'}">${pending > 0 ? pending + ' pending payment(s)' : '✓ All clear'}</div>
+    </div>
+  `;
+
+  const tbody = document.getElementById('paymentsBody');
+  if (!payments.length) { tbody.innerHTML = renderEmptyRow(8, 'No payment records found'); return; }
+  tbody.innerHTML = payments.map(p => `
+    <tr>
+      <td><span style="font-family:monospace;font-size:0.78rem">${p.payment_ref}</span></td>
+      <td style="font-weight:600">${formatCurrency(p.amount_due)}</td>
+      <td style="color:var(--brand-success);font-weight:600">${formatCurrency(p.amount_paid)}</td>
+      <td>${formatDate(p.due_date)}</td>
+      <td>${p.payment_date ? formatDate(p.payment_date) : '—'}</td>
+      <td>${p.payment_method ? `<span class="badge badge-info">${p.payment_method}</span>` : '—'}</td>
+      <td>${createStatusBadge(p.payment_status)}</td>
+      <td>
+        ${p.payment_status !== 'paid' ?
+          `<button class="btn btn-primary btn-sm" onclick="Toast.info('Please visit the accounts office or use online payment portal to pay.')">Pay Now</button>` :
+          `<button class="btn btn-secondary btn-sm" onclick="Toast.info('Invoice download coming soon!')">Invoice</button>`
+        }
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function switchTab(tab) {
+  ['payments','invoices'].forEach(t => {
+    document.getElementById(`tab_${t}`).classList.toggle('active', t === tab);
+    document.getElementById(`${t}Panel`).style.display = t === tab ? 'block' : 'none';
+  });
+  if (tab === 'invoices') loadInvoices();
+}
+
+async function loadInvoices() {
+  const res = await FeesAPI.invoices({ studentId: myStudentId });
+  const invoices = res?.data?.data || [];
+  const tbody = document.getElementById('invoicesBody');
+  if (!invoices.length) { tbody.innerHTML = renderEmptyRow(5, 'No invoices yet'); return; }
+  tbody.innerHTML = invoices.map(i => `
+    <tr>
+      <td><span style="font-family:monospace;font-size:0.78rem">${i.invoice_number}</span></td>
+      <td>${formatDate(i.invoice_date)}</td>
+      <td style="font-weight:700;color:var(--brand-success)">${formatCurrency(i.total_amount)}</td>
+      <td>${i.payment_method ? `<span class="badge badge-info">${i.payment_method}</span>` : '—'}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="Toast.info('PDF download coming soon!')">Download</button></td>
+    </tr>
+  `).join('');
+}
+</script>
+</body>
+</html>

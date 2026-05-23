@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Upload Marks — Smart ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div id="toast-container"></div>
+<div class="app-shell" id="appShell">
+<aside class="sidebar" id="sidebar"></aside>
+<header class="top-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></button>
+    <div><div class="page-title">Upload Marks</div><div class="breadcrumb">Teacher Portal · Marks Entry</div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="main-content">
+  <div class="content-inner">
+    <div class="page-header">
+      <div><h1>Upload Marks</h1><p>Enter and save student exam marks</p></div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="saveAllMarks()" id="saveMarksBtn">💾 Save All Marks</button>
+      </div>
+    </div>
+
+    <!-- Select Exam -->
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="form-field">
+          <label class="form-label">Select Exam *</label>
+          <select class="form-select" id="examSelect" onchange="loadExamStudents()">
+            <option value="">Select an exam</option>
+          </select>
+        </div>
+        <div class="form-field" style="display:flex;align-items:flex-end">
+          <div style="background:var(--bg-elevated);border-radius:10px;padding:12px 16px;width:100%">
+            <div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:4px">Selected Exam Info</div>
+            <div id="examInfo" style="font-size:0.85rem;color:var(--text-secondary)">No exam selected</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Marks Table -->
+    <div class="table-wrapper" id="marksWrapper" style="display:none">
+      <div class="table-toolbar">
+        <span class="table-title" id="marksTitle">Enter Marks</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="marksStats" style="font-size:0.82rem;color:var(--text-secondary)"></span>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr>
+            <th>Student</th><th>Roll No</th><th id="marksHeader">Marks (out of —)</th><th>Absent</th><th>Remarks</th><th>Grade Preview</th>
+          </tr></thead>
+          <tbody id="marksBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="marksEmptyState" style="text-align:center;padding:60px;color:var(--text-secondary)">
+      <div style="font-size:3rem;margin-bottom:12px">📝</div>
+      <div style="font-size:1rem;font-weight:600;margin-bottom:6px">Select an exam to enter marks</div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+document.getElementById('sidebar').innerHTML = `
+<div class="sidebar-brand"><div class="brand-icon" style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🎓</div><span class="brand-name">Smart ERP</span></div>
+<nav class="sidebar-nav">
+<a class="nav-item" href="teacher-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+<a class="nav-item" href="teacher-attendance.html"><span class="nav-icon">📅</span><span class="nav-label">Mark Attendance</span></a>
+<a class="nav-item active" href="teacher-marks.html"><span class="nav-icon">📝</span><span class="nav-label">Upload Marks</span></a>
+<a class="nav-item" href="teacher-timetable.html"><span class="nav-icon">🗓️</span><span class="nav-label">My Timetable</span></a>
+<a class="nav-item" href="teacher-students.html"><span class="nav-icon">🎓</span><span class="nav-label">My Students</span></a>
+<a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+</nav>
+<div class="sidebar-footer"><div class="user-card"><div class="user-avatar" id="userAvatarSidebar">T</div><div class="user-info"><div class="user-name" id="userNameSidebar">Teacher</div><div class="user-role" id="userRoleSidebar">teacher</div></div></div></div>`;
+
+let currentExam = null;
+let students    = [];
+let marks       = {};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const res = await ExamsAPI.list({});
+  if (res?.ok) {
+    (res.data?.data || []).forEach(e => {
+      document.getElementById('examSelect').innerHTML += `<option value="${e.id}" data-total="${e.total_marks||100}" data-name="${e.name}" data-subject="${e.subject_name||''}">${e.name} — ${e.subject_name||''}</option>`;
+    });
+  }
+});
+
+async function loadExamStudents() {
+  const sel  = document.getElementById('examSelect');
+  const id   = sel.value;
+  if (!id) return;
+
+  const opt  = sel.options[sel.selectedIndex];
+  const totalMarks = Number(opt.dataset.total || 100);
+  currentExam = { id, totalMarks, name: opt.dataset.name, subject: opt.dataset.subject };
+
+  document.getElementById('examInfo').innerHTML = `
+    <strong>${currentExam.name}</strong><br>
+    <span style="color:var(--text-tertiary)">${currentExam.subject} · Total: ${totalMarks} marks</span>`;
+  document.getElementById('marksHeader').textContent = `Marks (out of ${totalMarks})`;
+
+  document.getElementById('marksEmptyState').style.display = 'none';
+  document.getElementById('marksWrapper').style.display    = 'block';
+
+  // Load students
+  const studRes = await StudentsAPI.list({ limit: 100 });
+  students = studRes?.data?.data || [];
+  marks    = {};
+  students.forEach(s => marks[s.id] = { marksObtained: '', isAbsent: false, remarks: '' });
+
+  // Load existing results
+  const resRes = await ExamsAPI.getResults({ examId: id });
+  (resRes?.data?.data || []).forEach(r => {
+    const st = students.find(s => s.studentId === r.roll_no);
+    if (st) marks[st.id] = { marksObtained: r.marks_obtained || '', isAbsent: r.is_absent || false, remarks: r.remarks || '' };
+  });
+
+  renderMarksTable();
+}
+
+function renderMarksTable() {
+  const tbody = document.getElementById('marksBody');
+  tbody.innerHTML = students.map(s => {
+    const m = marks[s.id];
+    return `<tr id="mrow_${s.id}">
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${createAvatar(`${s.firstName} ${s.lastName}`)}
+          <div>
+            <div style="font-weight:500;font-size:0.87rem">${s.firstName} ${s.lastName}</div>
+            <div style="font-size:0.72rem;color:var(--text-tertiary)">${s.email}</div>
+          </div>
+        </div>
+      </td>
+      <td><span style="font-family:monospace;font-size:0.82rem">${s.studentId}</span></td>
+      <td>
+        <input class="form-input" type="number" min="0" max="${currentExam.totalMarks}"
+          style="width:100px;padding:6px 10px;font-size:0.87rem"
+          placeholder="0-${currentExam.totalMarks}"
+          value="${m.marksObtained}"
+          ${m.isAbsent ? 'disabled' : ''}
+          oninput="setMarks(${s.id},this.value)"
+          id="marks_${s.id}"/>
+      </td>
+      <td>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" ${m.isAbsent?'checked':''} onchange="setAbsent(${s.id},this.checked)" id="absent_${s.id}"/>
+          <span style="font-size:0.82rem">Absent</span>
+        </label>
+      </td>
+      <td>
+        <input class="form-input" style="width:130px;padding:6px 10px;font-size:0.78rem"
+          placeholder="Remarks..."
+          value="${m.remarks}"
+          oninput="setRemarks(${s.id},this.value)"/>
+      </td>
+      <td id="grade_${s.id}" style="font-weight:700;font-size:1rem;color:var(--brand-primary)">
+        ${m.marksObtained ? calcGrade(Number(m.marksObtained), currentExam.totalMarks) : '—'}
+      </td>
+    </tr>`;
+  }).join('');
+  updateStats();
+}
+
+function setMarks(id, value) {
+  marks[id].marksObtained = value;
+  const gradeEl = document.getElementById(`grade_${id}`);
+  if (gradeEl) gradeEl.textContent = value ? calcGrade(Number(value), currentExam.totalMarks) : '—';
+  updateStats();
+}
+
+function setAbsent(id, isAbsent) {
+  marks[id].isAbsent = isAbsent;
+  const marksInput = document.getElementById(`marks_${id}`);
+  if (marksInput) marksInput.disabled = isAbsent;
+  if (isAbsent) { marks[id].marksObtained = ''; if (marksInput) marksInput.value = ''; }
+  updateStats();
+}
+
+function setRemarks(id, value) { marks[id].remarks = value; }
+
+function calcGrade(marks, total) {
+  const pct = (marks / total) * 100;
+  if (pct >= 97) return 'A+'; if (pct >= 93) return 'A';  if (pct >= 90) return 'A-';
+  if (pct >= 87) return 'B+'; if (pct >= 83) return 'B';  if (pct >= 80) return 'B-';
+  if (pct >= 77) return 'C+'; if (pct >= 73) return 'C';  if (pct >= 70) return 'C-';
+  if (pct >= 67) return 'D+'; if (pct >= 60) return 'D';  return 'F';
+}
+
+function updateStats() {
+  const filled  = Object.values(marks).filter(m => m.marksObtained !== '' || m.isAbsent).length;
+  const absent  = Object.values(marks).filter(m => m.isAbsent).length;
+  document.getElementById('marksStats').textContent = `Filled: ${filled}/${students.length} · Absent: ${absent}`;
+}
+
+async function saveAllMarks() {
+  if (!currentExam) { Toast.error('Please select an exam'); return; }
+
+  const btn = document.getElementById('saveMarksBtn');
+  btn.disabled    = true;
+  btn.textContent = 'Saving...';
+
+  let saved = 0, failed = 0;
+  for (const s of students) {
+    const m = marks[s.id];
+    if (m.marksObtained === '' && !m.isAbsent) continue;
+    const res = await ExamsAPI.saveResult({
+      examId:        currentExam.id,
+      studentId:     s.id,
+      marksObtained: m.isAbsent ? null : Number(m.marksObtained),
+      isAbsent:      m.isAbsent,
+      remarks:       m.remarks,
+    });
+    if (res?.ok) saved++; else failed++;
+  }
+
+  btn.disabled    = false;
+  btn.textContent = '💾 Save All Marks';
+
+  if (failed === 0) Toast.success(`Marks saved for ${saved} students! Grades auto-calculated.`);
+  else Toast.warning(`Saved: ${saved}, Failed: ${failed}`);
+}
+</script>
+</body>
+</html>
