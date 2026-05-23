@@ -2,18 +2,6 @@
 
 A **production-level, full-stack Enterprise Resource Planning system** for universities and colleges. Built with Java (backend), HTML/CSS/JavaScript (frontend), and PostgreSQL (database).
 
-----------------------------------------------------------------------------------------
-## Window 1
-## 1] cd C:\Users\Omkar\Desktop\Projects\files\SmartStudentERP\SmartStudentERP\backend
-## 2] java -cp "out;lib\postgresql-42.7.7.jar" Main
-
-## Window 2
-## 1] cd C:\Users\Omkar\Desktop\Projects\files\SmartStudentERP\SmartStudentERP\frontend
-## 2] python -m http.server 3000
-
-## Window 3
-## Go To LocalHost
-----------------------------------------------------------------------------------------
 
 
 
